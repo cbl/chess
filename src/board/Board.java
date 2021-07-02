@@ -1,11 +1,13 @@
 package board;
 
 import types.Piece;
+import moves.Factory;
 import types.Color;
 
 public class Board implements contracts.Board {
 
     private BoardPiece[] board = new BoardPiece[64];
+    private Factory moves = new Factory();
 
     public Board() {
 
@@ -15,7 +17,13 @@ public class Board implements contracts.Board {
      * Make a move. e.g.: e4
      */
     public void move(String move) {
-        // TODO:
+        int pos = this.getPositionFromMove(move);
+
+        return true;
+    }
+
+    public int getPositionFromMove(String move) {
+        return 1;
     }
 
     /**
