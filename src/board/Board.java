@@ -19,7 +19,7 @@ public class Board implements contracts.Board {
     public void move(String move) {
         int pos = this.getPositionFromMove(move);
 
-        return true;
+        return;
     }
 
     public int getPositionFromMove(String move) {
