@@ -1,4 +1,4 @@
-package chess;
+package com.github.cbl.chess.chess;
 
 public class BitBoard {
     public static final long WHITE_SQUARES = 0x55AA55AA55AA55AAL;

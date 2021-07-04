@@ -1,4 +1,4 @@
-package chess;
+package com.github.cbl.chess.chess;
 
 public class Piece {
     public static final int NONE = 0;

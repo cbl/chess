@@ -1,4 +1,4 @@
-package chess;
+package com.github.cbl.chess.chess;
 
 public class Move {
     public static final int UP = 8;

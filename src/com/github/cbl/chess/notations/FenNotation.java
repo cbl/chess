@@ -1,14 +1,14 @@
 package notations;
 
-import chess.Board;
+import com.github.cbl.chess.chess.Board;
 
-public class AlgebraicNotation implements NotationParser {
+public class FenNotation implements NotationParser {
      /**
      * Generate a board from the given notation.
      */
     public Board parse(String notation)
     {
-        return new Board();
+        return 0;
     }
 
     /**

@@ -1,7 +1,8 @@
+package com.github.cbl.chess;
 
-import chess.BitBoard;
-import chess.Board;
-import chess.Piece;
+import com.github.cbl.chess.chess.BitBoard;
+import com.github.cbl.chess.chess.Board;
+import com.github.cbl.chess.chess.Piece;
 
 public class Main {
     public static void main(String[] args) throws Exception {

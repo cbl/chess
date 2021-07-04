@@ -1,6 +1,6 @@
 package notations;
 
-import chess.Board;
+import com.github.cbl.chess.chess.Board;
 
 public interface NotationParser {
     /**

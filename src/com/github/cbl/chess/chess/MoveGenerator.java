@@ -1,4 +1,4 @@
-package chess;
+package com.github.cbl.chess.chess;
 
 public class MoveGenerator {
     public static long getLegal(int[] pieces, int[] moves, int moveIndex, int square) {

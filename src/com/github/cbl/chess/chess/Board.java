@@ -1,4 +1,4 @@
-package chess;
+package com.github.cbl.chess.chess;
 
 import java.lang.Math;
 import java.util.List;
