@@ -8,7 +8,7 @@ public class FenNotation implements NotationParser {
      */
     public Board parse(String notation)
     {
-        return 0;
+        return new Board();
     }
 
     /**

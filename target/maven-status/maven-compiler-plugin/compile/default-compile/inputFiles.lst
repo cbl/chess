@@ -1,0 +1,9 @@
+/Users/lennart/git/chess/src/main/java/com/github/cbl/chess/Main.java
+/Users/lennart/git/chess/src/main/java/com/github/cbl/chess/chess/BitBoard.java
+/Users/lennart/git/chess/src/main/java/com/github/cbl/chess/chess/MoveGenerator.java
+/Users/lennart/git/chess/src/main/java/com/github/cbl/chess/notations/AlgebraicNotation.java
+/Users/lennart/git/chess/src/main/java/com/github/cbl/chess/chess/Board.java
+/Users/lennart/git/chess/src/main/java/com/github/cbl/chess/chess/Piece.java
+/Users/lennart/git/chess/src/main/java/com/github/cbl/chess/notations/NotationParser.java
+/Users/lennart/git/chess/src/main/java/com/github/cbl/chess/notations/FenNotation.java
+/Users/lennart/git/chess/src/main/java/com/github/cbl/chess/chess/Move.java
