@@ -17,6 +17,15 @@ public class MoveGenerator {
             case Piece.ROOK:
                 board = rookMoves(pieces, moves, square);
                 break;
+            case Piece.KNIGHT:
+                board = knightMoves(pieces, moves, square);
+                break;
+            case Piece.BISHOP:
+                board = bishopMoves(pieces, moves, square);
+                break;
+            case Piece.KING:
+                board = kingMoves(pieces, moves, square);
+                break;
             default: board = 0;
                 break;
         }
@@ -115,4 +124,109 @@ public class MoveGenerator {
 
         return board;
     }
+
+    protected static long knightMoves(int[] pieces, int[] moves, int square) {
+        int knightRank= Board.getRank(square);
+        int knightFile = Board.getFile(square);
+
+        System.out.println(knightRank);
+        System.out.println(knightFile);
+
+        long bbSquare = Board.getBBSquare(square);
+
+        long board = 0
+        | BitBoard.shiftUp(BitBoard.shiftUpRight(bbSquare, 1), 1)
+        | BitBoard.shiftUp(BitBoard.shiftUpLeft(bbSquare, 1), 1)
+        | BitBoard.shiftRight(BitBoard.shiftUpRight(bbSquare, 1), 1)
+        | BitBoard.shiftRight(BitBoard.shiftDownRight(bbSquare, 1), 1)
+        | BitBoard.shiftLeft(BitBoard.shiftUpLeft(bbSquare, 1), 1)
+        | BitBoard.shiftLeft(BitBoard.shiftDownLeft(bbSquare, 1), 1)
+        | BitBoard.shiftDown(BitBoard.shiftDownRight(bbSquare, 1), 1)
+        | BitBoard.shiftDown(BitBoard.shiftDownLeft(bbSquare, 1), 1);
+
+        return board;
+    }
+
+    protected static long kingMoves(int[] pieces, int[] moves, int square) {
+
+        int kingRank= Board.getRank(square);
+        int kingFile = Board.getFile(square);
+        int usColor = Piece.getColor(pieces[square]);
+
+        System.out.println(kingRank);
+        System.out.println(kingFile);
+
+        long bbSquare = Board.getBBSquare(square);
+
+        long mask = BitBoard.A1 | BitBoard.B1 | BitBoard.C1 | BitBoard.A2 | BitBoard.B2 
+                  | BitBoard.C2 | BitBoard.A3 | BitBoard.B3 | BitBoard.C3;
+
+        long castleRight = BitBoard.shiftRight(bbSquare, 2);
+        long castleLeft = BitBoard.shiftLeft(bbSquare, 2);
+
+        long board = BitBoard.shiftDown(mask << (kingRank * 8) + kingFile -1,1)
+        | castleLeft 
+        | castleRight;
+        
+        long rookA = usColor == Piece.Color.WHITE
+        ? BitBoard.A1
+        : BitBoard.A8;
+
+        long rookH = usColor == Piece.Color.WHITE
+        ? BitBoard.H1
+        : BitBoard.H8;
+
+        for (int i = 0; i < moves.length; i++){
+            int piece = Move.getPiece(moves[i]);
+            
+            if(piece == 0 || !Piece.isColor(piece, usColor)) {
+                continue;
+            }
+            if (Piece.isType(piece, Piece.KING)) {
+                board &= ~castleLeft & ~castleRight;
+            }
+
+            if (Piece.isType(piece, Piece.ROOK)) {
+                long fromSquare = Board.getBBSquare(Move.getFromSquare(moves[i]));
+                
+                if (fromSquare == rookA){
+                    board &= ~castleLeft;
+                }
+                if (fromSquare == rookH){
+                    board &= ~castleRight;
+                }
+            }        
+        }
+
+        return board;
+    }
+
+    protected static long bishopMoves(int[] pieces, int[] moves, int square) {
+        int bishopRank= Board.getRank(square);
+        int bishopFile = Board.getFile(square);
+        long cross = BitBoard.DIAGONAL_A1_H8 << 8 | BitBoard.DIAGONAL_A8_H1;
+        long board =
+        (bishopRank > Board.RANK_5 
+        ? cross << (8 * (-Board.RANK_5 + bishopRank)) 
+        : cross >> (8 * (Board.RANK_5 - bishopRank)));
+
+        long bbSquare = Board.getBBSquare(square);
+         
+        board =
+        (bishopFile > Board.FILE_D
+        ? BitBoard.shiftRight(board, bishopFile - Board.FILE_D)
+        : BitBoard.shiftLeft(cross, Board.FILE_D - bishopFile))
+        | BitBoard.shiftDownLeft(bbSquare, 4);
+
+        board = 
+        bishopRank > bishopFile
+        ? BitBoard.shiftLeft(bbSquare, 1)
+        : BitBoard.shiftRight(bbSquare, bishopFile - bishopRank);
+
+        return board;
+        
+        //BitBoard.shiftRight(BitBoard.DIAGONAL_A1_H8, bishopFile - bishopRank)
+        //| BitBoard.shiftLeft(BitBoard.DIAGONAL_A8_H1, 1);
+    }
+
 }
