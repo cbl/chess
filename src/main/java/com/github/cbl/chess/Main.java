@@ -8,10 +8,6 @@ public class Main {
     public static void main(String[] args) throws Exception {
         // long board = 0;
 
-
-
-
-        System.out.println(Board.isWhite(Board.B2));
         Board b = new Board();
         b.addPiece(Board.A7, Piece.PAWN, Piece.Color.BLACK);
         b.addPiece(Board.B7, Piece.PAWN, Piece.Color.BLACK);
