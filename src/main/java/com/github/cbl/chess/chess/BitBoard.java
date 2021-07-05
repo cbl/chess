@@ -134,7 +134,7 @@ public class BitBoard {
     /**
      * Shift down.
      */
-    public static long moveDown(long square, int times) {
+    public static long shiftDown(long square, int times) {
         return square >> (8 * times) & (~RANK_8 >> (8 * --times));
     }
 
