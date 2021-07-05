@@ -169,58 +169,11 @@ public class Board {
         return bbSquare == ~BitBoard.H8 ? ~bbSquare : bbSquare;
     }
 
+    /**
+     * Get BitBoard square if the given square is on the board, otherwise 
+     * return 0.
+     */
     public static long getSafeBBSquare(int square) {
         return isOnBoard(square) ? getBBSquare(square) : 0;
-    }
-
-    protected int[] pieces = new int[SQUARE_COUNT];
-    protected int[] moves = new int[Move.MAX_MOVES_COUNT];
-    protected int sideToMove = Piece.Color.WHITE;
-    protected int moveIndex = -1;
-
-    public void addPiece(int square, int type, int color) {
-        this.pieces[square] = color | type;
-    }
-
-    public long getLegalMoves(int square) {
-        return MoveGenerator.getLegal(
-            this.pieces, this.moves, this.moveIndex, square
-        );
-    }
-
-    public void move(int from, int to) {
-        int move = Move.make(Move.Type.NORMAL, this.pieces[from], from, to);
-        this.moves[++this.moveIndex] = move;
-        this.sideToMove = Piece.Color.opposite(this.sideToMove);
-        this.pieces[to] = this.pieces[from];
-        this.pieces[from] = 0;
-    }
-
-    /**
-     * Get the ASCII representation of a board.
-     */
-    public String toAscii(long colored) {
-        String ascii = "    A B C D E F G H\n";
-        ascii += "    ----------------\n";
-
-        for (int r = 7; r >= 0; r--) {
-            ascii += (r + 1) + " | ";
-            for (int f = 0; f <= 7; f++) {
-                int square = makeSquare(r, f);
-                boolean isColored = (colored & getBBSquare(square)) != 0;
-                int piece = this.pieces[square];
-
-                ascii += isColored 
-                    ? "\u001b[41m"
-                    : isWhite(square) ? "\u001B[47m\u001B[30m" : "\u001B[40m\u001B[37m";
-                ascii += piece == 0 ? "  " : Piece.toAscii(piece)+" ";
-                ascii += "\u001B[0m";
-            }
-            ascii += " | " + (r + 1) + "\n";
-        }
-        ascii += "    ----------------\n";
-        ascii += "    A B C D E F G H";
-
-        return ascii.toString();
     }
 }

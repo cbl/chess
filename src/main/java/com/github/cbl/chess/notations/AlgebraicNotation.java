@@ -1,35 +1,40 @@
-package notations;
+package com.github.cbl.chess.notations;
 
 import com.github.cbl.chess.chess.Board;
+import com.github.cbl.chess.chess.Position;
 
-public class AlgebraicNotation implements NotationParser {
+public class AlgebraicNotation implements Notation {
+    public static final String fileToChar = "abcdefgh";
+
+    public static int charToFile(char ch) {
+        return fileToChar.indexOf(ch);
+    }
+
+    public static int parseSquare(String square)
+    {
+        return 8 * (square.charAt(1) - '0' - 1) + charToFile(square.charAt(0));
+    }
+
+    public static long parseBBSquare(String square)
+    {
+        return Board.getBBSquare(parseSquare(square));
+    }
+
      /**
      * Generate a board from the given notation.
      */
-    public Board parse(String notation)
+    public Position parse(String notation)
     {
-        return new Board();
+        return new Position();
     }
 
     /**
-     * Generate the notation for a given board.
+     * Generate the notation for a given position.
      */
-    public String compose(Board board)
+    public String compose(Position position)
     {
         return "";
     }
 
-    public int parseMove(String notation)
-    {
-        // e4
-        return Board.E4;
-    }
-
-    /**
-     * Generate the notation for a given board.
-     */
-    public String composeMove(int move)
-    {
-        return "";
-    }
+    
 }

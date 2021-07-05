@@ -91,9 +91,6 @@ public class MoveGenerator {
         int rookRank = Board.getRank(square);
         int rookFile = Board.getFile(square);
 
-        System.out.println(rookRank);
-        System.out.println(rookFile);
-
         long board = 0
             | (BitBoard.RANK_1 << (8 * rookRank))
             | (BitBoard.FILE_A << rookFile);
@@ -129,9 +126,6 @@ public class MoveGenerator {
         int knightRank= Board.getRank(square);
         int knightFile = Board.getFile(square);
 
-        System.out.println(knightRank);
-        System.out.println(knightFile);
-
         long bbSquare = Board.getBBSquare(square);
 
         long board = 0
@@ -152,9 +146,6 @@ public class MoveGenerator {
         int kingRank= Board.getRank(square);
         int kingFile = Board.getFile(square);
         int usColor = Piece.getColor(pieces[square]);
-
-        System.out.println(kingRank);
-        System.out.println(kingFile);
 
         long bbSquare = Board.getBBSquare(square);
 

@@ -107,7 +107,7 @@ public class BitBoard {
     public static final long DIAGONAL_A1_H8 = A1 | B2 | C3 | D4 | E5 | F6 | G7 | H8;
     public static final long DIAGONAL_A8_H1 = A8 | B7 | C6 | D5 | E4 | F3 | G2 | H1;
 
-    public static final long KNIGHT_MASK = B1 | A2;
+    public static final long KNIGHT_MASK = B1 | A2;
 
 
     /**

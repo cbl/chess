@@ -1,5 +1,17 @@
 package com.github.cbl.chess.chess;
 
+/**
+ * The Piece class stores and interprets information about a piece in a range 
+ * of 4 bits.
+ * 
+ * bits 1-3: type  - Type of the piece (pawn, knight, bishop, rook, queen, king)
+ * bits 4:   color - Color of the piece (white, black)
+ * 
+ * e.g.:
+ * white pawn 0 001
+ * black pawn 1 001
+ * white knight 0 010
+ */
 public class Piece {
     public static final int NONE = 0;
     public static final int PAWN = 1;
@@ -14,15 +26,15 @@ public class Piece {
 
     public static class Block {
         public static final int TYPE = 7;
-        public static final int COLOR = 0b11 << 3;
+        public static final int COLOR = 0b1 << 3;
 
         public static final int TYPE_SIZE = 3;
-        public static final int COLOR_SIZE = 2;
+        public static final int COLOR_SIZE = 1;
     }
 
     public static class Color {
-        public static final int WHITE = 8;
-        public static final int BLACK = 16;
+        public static final int WHITE = 0;
+        public static final int BLACK = 8;
         public static final int ALL = WHITE | BLACK;
 
         public static int opposite(int color) {

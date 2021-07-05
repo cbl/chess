@@ -1,5 +1,18 @@
 package com.github.cbl.chess.chess;
 
+/**
+ * The Move class stores and interprets information about a move in a range of 
+ * 19 bits.
+ * 
+ * bits 1-6:   to    - The square where the piece was moved to (0-63)
+ * bits 7-12:  from  - The square where the piece was moved from (0-63)
+ * bits 13-17: piece - Information about the piece (type and color)
+ * bits 17-19: type  - The type of the move (normal, promotion, en passant, castling)
+ * 
+ * e.g.: 
+ * white pawn was moved from A2(8) -> A3(16)
+ * 00 01001 001000 010000
+ */
 public class Move {
     public static final int UP = 8;
     public static final int DOWN = -UP;
