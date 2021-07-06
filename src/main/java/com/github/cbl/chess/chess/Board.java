@@ -109,7 +109,7 @@ public class Board {
      * Determine whether the given square is on board.
      */
     public static boolean isOnBoard(int square) {
-        return (square & 63) != 0;
+        return square >= A1 && square <= H8;
     }
 
     /**
@@ -165,8 +165,7 @@ public class Board {
      * Convert board square to BitBoard square.
      */
     public static long getBBSquare(int square) {
-        long bbSquare = (long) Math.pow(2, square);
-        return bbSquare == ~BitBoard.H8 ? ~bbSquare : bbSquare;
+        return 0x1L << square;
     }
 
     /**
@@ -174,6 +173,7 @@ public class Board {
      * return 0.
      */
     public static long getSafeBBSquare(int square) {
+
         return isOnBoard(square) ? getBBSquare(square) : 0;
     }
 }

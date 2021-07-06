@@ -20,7 +20,7 @@ public class Piece {
     public static final int ROOK = 4;
     public static final int QUEEN = 5;
     public static final int KING = 6;
-    public static final int ALL = PAWN | KNIGHT | BISHOP | ROOK | QUEEN | KING;
+    public static final int ANY = 0;
 
     public static int[] VALUES = { 0, 1, 3, 3, 5, 7, 0 };
 
@@ -34,16 +34,16 @@ public class Piece {
 
     public static class Color {
         public static final int WHITE = 0;
-        public static final int BLACK = 8;
-        public static final int ALL = WHITE | BLACK;
+        public static final int BLACK = 1;
+        public static final int ANY = 2;
 
         public static int opposite(int color) {
-            return ~color & Block.COLOR;
+            return color == WHITE ? BLACK : WHITE;
         }
     }
 
     public static int make(int type, int color) {
-        return color | type;
+        return color << Block.TYPE_SIZE | type;
     }
 
     public static int getValue(int piece) {
@@ -51,7 +51,7 @@ public class Piece {
     }
 
     public static int getColor(int piece) {
-        return piece & Block.COLOR;
+        return (piece & Block.COLOR) >> Block.TYPE_SIZE;
     }
 
     public static boolean isColor(int piece, int color) {
@@ -59,11 +59,11 @@ public class Piece {
     }
 
     public static int getType(int piece) {
-        return piece & ALL;
+        return piece & Block.TYPE;
     }
 
     public static boolean isType(int piece, int type) {
-        return (piece & ALL) == type;
+        return (piece & Block.TYPE) == type;
     }
 
     /**

@@ -117,6 +117,10 @@ public class BitBoard {
         return rank & file;
     }
 
+    public static long safe(long board) {
+        return board & (QUEEN_SIDE | KING_SIDE);
+    }
+
     /**
      * Determines whether the given square is on the board.
      */
@@ -211,6 +215,13 @@ public class BitBoard {
      */
     public static boolean valueAt(long board, long square) {
         return (board & square) != 0;
+    }
+
+    /**
+     * Get the bit at the given square.
+     */
+    public static boolean valueAt(long board, int square) {
+        return ((board >> square) & 1) == 1;
     }
 
     /**

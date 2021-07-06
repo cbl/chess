@@ -2,6 +2,7 @@ package com.github.cbl.chess;
 
 import com.github.cbl.chess.chess.BitBoard;
 import com.github.cbl.chess.chess.Board;
+import com.github.cbl.chess.chess.AttackIndex;
 import com.github.cbl.chess.chess.Position;
 import com.github.cbl.chess.chess.Piece;
 
@@ -15,11 +16,13 @@ public class Main {
         Notation fen = new FenNotation();
         Position p = fen.parse(
             "rnbqkbnr/pp5p/4ppp1/2pp4/5P2/1P1BPN2/P1PPQ1PP/RNB1K2R b KQkq - 1 6"
+            // "8/8/8/8/8/8/6b1/8 w KQkq - 1 6"
         );
-        System.out.println(p.toAscii(p.getLegalMoves(Board.F4)));
-
-
-        // System.out.println(BitBoard.toAscii(b.getLegalMoves(Board.G4)));
+        System.out.println(p.toAscii(p.pseudoLegalMoves(Board.D8)));
+        // System.out.println(
+        //     BitBoard.toAscii(Board.getBBSquare(Board.H8))
+        //     // BitBoard.toAscii(MoveIndex.pseudoAttackIndex[Piece.BISHOP][Board.G2])
+        // );
         // System.out.println(BitBoard.toAscii(BitBoard.RANK_4 & BitBoard.FILE_D));
         // System.out.println(BitBoard.toAscii(b.getLegalMoves(Board.B4)));
         // System.out.println(BitBoard.toAscii(

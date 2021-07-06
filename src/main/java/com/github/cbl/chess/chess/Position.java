@@ -1,27 +1,56 @@
 package com.github.cbl.chess.chess;
 
 public class Position {
-    public int[] pieces = new int[Board.SQUARE_COUNT];
-    public int[] moves = new int[Move.MAX_MOVES_COUNT];
     public int sideToMove = Piece.Color.WHITE;
-    public int moveIndex = -1;
+    public int halfmoveCount = 0;
+    public int moveNumber = 0;
     public long castlingRights = 0;
     public long enPassantSquare = 0;
-    public long halfmoveCount = 0;
-    public long moveNumber = 0;
 
+    protected int[] moves = new int[Move.MAX_MOVES_COUNT];
+    protected long[] piecesByType = new long[7];
+    protected long[] piecesByColor = new long[3];
+    protected int[] pieces = new int[Board.SQUARE_COUNT];
+    
     public void addPiece(int square, int type, int color) {
-        this.pieces[square] = color | type;
+        long bbSquare = Board.getBBSquare(square);
+        this.piecesByColor[color] |= bbSquare;
+        this.piecesByColor[Piece.Color.ANY] |= bbSquare;
+        this.piecesByType[type] |= type;
+        this.piecesByType[Piece.ANY] |= type;
+        this.pieces[square] = Piece.make(type, color);
+    }
+
+    public long piecesByType(int type) {
+        return this.piecesByType[type];
+    }
+
+    public long piecesByColor(int color) {
+        return this.piecesByColor[color];
+    }
+
+    public long piecesByColorAndType(int color, int type) {
+        return this.piecesByType[type] & this.piecesByColor[color];
     }
 
     public void addPiece(int square, int piece) {
-        this.pieces[square] = piece;
+        this.addPiece(square, Piece.getType(piece), Piece.getColor(piece));
     }
 
-    public long getLegalMoves(int square) {
-        return MoveGenerator.getLegal(
-            this.pieces, this.moves, this.moveIndex, square
-        );
+    public long legalMoves(int square) {
+        return MoveGenerator.legalMoves(this, square);
+    }
+
+    public long pseudoLegalMoves(int square) {
+        return MoveGenerator.pseudoLegalMoves(this, square);
+    }
+
+    public int pieceAt(int square) {
+        return this.pieces[square];
+    }
+
+    public int moveAt(int index) {
+        return this.moves[index];
     }
 
     public void setSideToMove(int color) {
@@ -30,7 +59,7 @@ public class Position {
 
     public void move(int from, int to) {
         int move = Move.make(Move.Type.NORMAL, this.pieces[from], from, to);
-        this.moves[++this.moveIndex] = move;
+        this.moves[(++this.halfmoveCount)-1] = move;
         this.sideToMove = Piece.Color.opposite(this.sideToMove);
         this.pieces[to] = this.pieces[from];
         this.pieces[from] = 0;
@@ -47,6 +76,13 @@ public class Position {
             : BitBoard.QUEEN_SIDE;
 
         castlingRights |= ranks & side;
+    }
+
+    public long castlingRightsFor(int color) {
+        return this.castlingRights
+            & (color == Piece.Color.WHITE
+            ? BitBoard.WHITE_SIDE 
+            : BitBoard.BLACK_SIDE);
     }
 
     public void setEnPassantSquare(int square) {

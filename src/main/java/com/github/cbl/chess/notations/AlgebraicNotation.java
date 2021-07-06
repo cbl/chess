@@ -35,6 +35,4 @@ public class AlgebraicNotation implements Notation {
     {
         return "";
     }
-
-    
 }
