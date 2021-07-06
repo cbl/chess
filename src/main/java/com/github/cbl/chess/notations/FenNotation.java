@@ -49,7 +49,7 @@ public class FenNotation implements Notation {
         // Castling rights
         for(i+=2;i<fen.length();i++) {
             ch = fen.charAt(i);
-            if(ch == ' ') break;
+            if(ch == '-' || ch == ' ') break;
 
             piece = charToPiece(ch);
             int color = Piece.getColor(piece);
