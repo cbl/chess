@@ -5,8 +5,6 @@ import java.lang.Math;
 /**
  * The MoveIndex is an index to lookup all possible pseudo moves for any piece 
  * at any square.
- * 
- * @see https://www.chessprogramming.org/Magic_Bitboards
  */
 public class AttackIndex {
     public static long[][] pawns = new long[3][];

@@ -235,7 +235,7 @@ public class BitBoard {
             ascii += (r + 1) + " | ";
             for (long f = 0; f <= 7; f++) {
                 long square = makeSquare(RANK_1 << (8 * r), FILE_A << f);
-                ascii += valueAt(board, square) ? "1 " : "0 ";
+                ascii += valueAt(board, square) ? "1 " : ". ";
             }
             ascii += "| " + (r + 1) + "\n";
         }
