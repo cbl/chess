@@ -71,11 +71,9 @@ public class AlgebraicNotation implements Notation {
                 possibleOccurrence &= BitBoard.file(to);
             }
         } 
-
-        // System.out.println(BitBoard.toAscii(possibleOccurrence));
         
         if(piece == Piece.KING) {
-            from = Board.fromBBSquare(pos.piecesByColorAndType(pos.sideToMove, Piece.QUEEN));
+            from = Board.fromBBSquare(pos.piecesByColorAndType(pos.sideToMove, Piece.KING));
         } else {
             long pieces = pos.piecesByColorAndType(pos.sideToMove, piece);
             

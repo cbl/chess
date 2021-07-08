@@ -74,8 +74,10 @@ public class Position {
         long bbTo = Board.getBBSquare(to);
         this.moves[(++this.halfmoveCount)-1] = move;
         this.piecesByColor[this.sideToMove] &= ~bbFrom;
+        this.piecesByColor[Piece.Color.opposite(this.sideToMove)] &= ~bbTo;
         this.piecesByColor[this.sideToMove] |= bbTo;
         this.piecesByType[type] &= ~bbFrom;
+        for(int t=0;t<this.piecesByType.length;t++) this.piecesByType[t] &= ~bbTo;
         this.piecesByType[type] |= bbTo;
         this.sideToMove = Piece.Color.opposite(this.sideToMove);
         this.pieces[to] = this.pieces[from];
