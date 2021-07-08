@@ -4,10 +4,16 @@ import com.github.cbl.chess.chess.BitBoard;
 import com.github.cbl.chess.chess.Board;
 import com.github.cbl.chess.chess.AttackIndex;
 import com.github.cbl.chess.chess.Position;
+import com.github.cbl.chess.console.CLI;
 import com.github.cbl.chess.chess.Piece;
-
 import com.github.cbl.chess.notations.FenNotation;
 import com.github.cbl.chess.notations.Notation;
+import com.github.cbl.chess.ui.DesktopUI;
+import com.github.cbl.chess.ui.UI;
+import com.github.cbl.chess.chess.GameOfChess;
+
+import java.lang.Runnable;
+import javax.swing.SwingUtilities;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -15,31 +21,31 @@ public class Main {
 
         Notation fen = new FenNotation();
         Position p = fen.parse(
-            "4k3/8/2K5/p1P5/1b5B/1P6/P3p3/8 w - - 15 55"
+            "rnbqkbnr/pp4pp/4p3/2ppPp2/5P2/1P3N2/P1PP2PP/RNBQKB1R b KQkq - 1 5"
             // "8/8/8/8/8/8/6b1/8 w KQkq - 1 6"
         );
-        System.out.println(p.toAscii(p.legalMoves(Board.E8)));
+        GameOfChess game = new GameOfChess(p);
+        CLI cli = new CLI();
+        cli.run();
+        // System.out.println(p.toAscii(p.pseudoLegalMoves(Board.D1)));
+        // // System.out.println(  
+        // //     // BitBoard.toAscii(p.)
+        // //     BitBoard.toAscii(AttackIndex.pseudo[Piece.BISHOP][Board.G2])
+        // // );
         // System.out.println(
+        //     // BitBoard.toAscii(p.)
         //     BitBoard.toAscii(p.castlingRights)
-        //     // BitBoard.toAscii(MoveIndex.pseudoAttackIndex[Piece.BISHOP][Board.G2])
         // );
-        // System.out.println(BitBoard.toAscii(BitBoard.RANK_4 & BitBoard.FILE_D));
-        // System.out.println(BitBoard.toAscii(b.getLegalMoves(Board.B4)));
-        // System.out.println(BitBoard.toAscii(
-        //     BitBoard.shiftRight(BitBoard.DIAGONAL_A1_H8, 3) & ~BitBoard.shiftUp(BitBoard.DIAGONAL_A1_H8, 6)
-        // ));
-        // System.out.println(BitBoard.toAscii(
-        //     // BitBoard.shiftLeft(BitBoard.DIAGONAL_A1_H8, 1)
-        //     // BitBoard.DIAGONAL_A1_H8
-        // ));
-        // System.out.println(BitBoard.toAscii(b.getLegalMoves(Board.H7)));
-        // System.out.println(Board.getBBSquare(Board.H2));
 
-        // board = BitBoard.set(board, BitBoard.Square.A1);
-        // board = BitBoard.set(board, BitBoard.Square.C5);
-        // System.out.println(BitBoard.valueAt(board, BitBoard.Square.A2));
-
-        // System.out.println(BitBoard.toASCII(board));
+        // UI.run();
+        // Runnable r = new Runnable() {
+        //     @Override
+        //     public void run() {
+        //         UI ui = new DesktopUI();
+        //         ui.mount();
+        //     }
+        // };
+        // SwingUtilities.invokeLater(r);
     }
 }
 

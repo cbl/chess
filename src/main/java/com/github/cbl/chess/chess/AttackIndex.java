@@ -25,8 +25,11 @@ public class AttackIndex {
             pawns[Piece.Color.WHITE][sq] = pawnAttacks(Piece.Color.WHITE, sq);
             pawns[Piece.Color.BLACK][sq] = pawnAttacks(Piece.Color.BLACK, sq);
 
-            for (int move: Move.KNIGHT_MOVES)
+            for (int move: Move.KNIGHT_MOVES) {
+                if(Math.abs(Board.getFile(sq + move) - Board.getFile(sq)) > 2) continue;
+                if(Math.abs(Board.getRank(sq + move) - Board.getRank(sq)) > 2) continue;
                 pseudo[Piece.KNIGHT][sq] |= Board.getSafeBBSquare(sq + move);
+            }
 
             for(int move: Move.BISHOP_MOVES) {
                 if(move > 0 && (move%7) == 0 && ((sq+move)%8) > (sq%8)) continue;

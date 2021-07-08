@@ -13,6 +13,11 @@ public class MoveGenerator {
             usColor = Piece.getColor(piece);
         boolean[] blocked = new boolean[4];
 
+        // Night moves cannot be blocked.
+        if(Piece.isType(piece, Piece.KNIGHT)) {
+            return pseudo & ~p.piecesByColor(usColor);
+        }
+
         // Check upper squares.
         for(sq = square+1;sq<=Board.H8;sq++) {
             if(!BitBoard.valueAt(pseudo, sq)) continue;
@@ -58,7 +63,7 @@ public class MoveGenerator {
 
         if(Piece.isType(piece, Piece.PAWN)) {
             pseudo |= AttackIndex.pawns[usColor][square];
-            pseudo &= p.piecesByColorAndType(themColor, Piece.PAWN);
+            pseudo &= p.piecesByColor(themColor);
             pseudo |= p.enPassantSquare;
             pseudo |= pawnMoves(p, square);
         } else if(Piece.isType(piece, Piece.KING)) {

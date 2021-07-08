@@ -16,8 +16,8 @@ public class Position {
         long bbSquare = Board.getBBSquare(square);
         this.piecesByColor[color] |= bbSquare;
         this.piecesByColor[Piece.Color.ANY] |= bbSquare;
-        this.piecesByType[type] |= type;
-        this.piecesByType[Piece.ANY] |= type;
+        this.piecesByType[type] |= bbSquare;
+        this.piecesByType[Piece.ANY] |= bbSquare;
         this.pieces[square] = Piece.make(type, color);
     }
 
@@ -41,8 +41,18 @@ public class Position {
         return MoveGenerator.legalMoves(this, square);
     }
 
+    public long legalMoves(long square) {
+        return this.legalMoves(Board.fromBBSquare(square));
+    }
+
     public long pseudoLegalMoves(int square) {
         return MoveGenerator.pseudoLegalMoves(this, square);
+    }
+
+    public boolean isLegal(int from, int to) {
+        long bbTo = Board.getBBSquare(to);
+
+        return (this.legalMoves(from) & bbTo) != 0;
     }
 
     public int pieceAt(int square) {
@@ -59,10 +69,18 @@ public class Position {
 
     public void move(int from, int to) {
         int move = Move.make(Move.Type.NORMAL, this.pieces[from], from, to);
+        int type = Piece.getType(this.pieces[from]);
+        long bbFrom = Board.getBBSquare(from);
+        long bbTo = Board.getBBSquare(to);
         this.moves[(++this.halfmoveCount)-1] = move;
+        this.piecesByColor[this.sideToMove] &= ~bbFrom;
+        this.piecesByColor[this.sideToMove] |= bbTo;
+        this.piecesByType[type] &= ~bbFrom;
+        this.piecesByType[type] |= bbTo;
         this.sideToMove = Piece.Color.opposite(this.sideToMove);
         this.pieces[to] = this.pieces[from];
         this.pieces[from] = 0;
+        
     }
 
     public void setCastlingRight(int color, int rookSquare) {
@@ -94,7 +112,7 @@ public class Position {
     }
 
     /**
-     * Get the ASCII representation of a board.
+     * Get the ASCII representation of the position.
      */
     public String toAscii(long colored) {
         String ascii = "    A B C D E F G H\n";
@@ -103,7 +121,7 @@ public class Position {
         for (int r = 7; r >= 0; r--) {
             ascii += (r + 1) + " | ";
             for (int f = 0; f <= 7; f++) {
-                int square = Board.makeSquare(r, f);
+                int square = Board.square(r, f);
                 boolean isColored = (colored & Board.getBBSquare(square)) != 0;
                 int piece = this.pieces[square];
 

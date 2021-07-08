@@ -121,6 +121,14 @@ public class BitBoard {
         return board & (QUEEN_SIDE | KING_SIDE);
     }
 
+    public static long file(int square) {
+        return FILE_A << Board.getFile(square);
+    }
+
+    public static long rank(int square) {
+        return RANK_1 << (8 * Board.getRank(square));
+    }
+
     /**
      * Determines whether the given square is on the board.
      */

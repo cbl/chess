@@ -122,7 +122,7 @@ public class Board {
     /**
      * Make a new square from the intersection of the rank and the file.
      */
-    public static int makeSquare(int rank, int file) {
+    public static int square(int rank, int file) {
         return rank * 8 + file;
     }
 
@@ -166,6 +166,13 @@ public class Board {
      */
     public static long getBBSquare(int square) {
         return 0x1L << square;
+    }
+
+    /**
+     * Convert board BitBoard square to square.
+     */
+    public static int fromBBSquare(long square) {
+        return Long.numberOfTrailingZeros(square);
     }
 
     /**
