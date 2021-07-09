@@ -1,11 +1,14 @@
 package com.github.cbl.chess.chess;
 
+import java.lang.Math;
+
 public class Position {
     public int sideToMove = Piece.Color.WHITE;
     public int halfmoveCount = 0;
     public int moveNumber = 0;
     public long castlingRights = 0;
     public long enPassantSquare = 0;
+    public long[] checkSquares = new long[7];
 
     protected int[] moves = new int[Move.MAX_MOVES_COUNT];
     protected long[] piecesByType = new long[7];
@@ -50,8 +53,12 @@ public class Position {
     }
 
     public boolean isLegal(int from, int to) {
-        long bbTo = Board.getBBSquare(to);
+        int piece = this.pieceAt(from);
+        if(piece == 0 || !Piece.isColor(piece, this.sideToMove)) {
+            return false;
+        }
 
+        long bbTo = Board.getBBSquare(to);
         return (this.legalMoves(from) & bbTo) != 0;
     }
 
@@ -68,21 +75,74 @@ public class Position {
     }
 
     public void move(int from, int to) {
+        int piece = this.pieces[from];
+        int type = Piece.getType(piece);
+        long bbFrom = Board.getBBSquare(from);
+        int toFile = Board.getFile(to);
+        int fromFile = Board.getFile(from);
+        int fromRank = Board.getRank(from);
+        
+        this.movePiece(piece, from, to);
+        if(type == Piece.KING && toFile == Board.FILE_C) {
+            int rookSquare =  Board.square(fromRank, Board.FILE_A);
+            this.movePiece(rookSquare, rookSquare, Board.square(fromRank, Board.FILE_D));
+        } else if(type == Piece.KING && toFile == Board.FILE_G) {
+            int rookSquare =  Board.square(fromRank, Board.FILE_H);
+            this.movePiece(rookSquare, rookSquare, Board.square(fromRank, Board.FILE_F));
+        }
+
+        // Clear castling rights after king move.
+        if(type == Piece.KING) {
+            this.castlingRights &= this.sideToMove == Piece.Color.WHITE ? BitBoard.BLACK_SIDE : BitBoard.WHITE_SIDE;
+        }
+
+        // Clear castling rights after rook moved from original square.
+        if(type == Piece.ROOK && (bbFrom & BitBoard.ROOK_SQUARES) != 0) {
+            this.castlingRights &= ~((this.sideToMove == Piece.Color.WHITE ? BitBoard.WHITE_SIDE : BitBoard.BLACK_SIDE)
+                & (fromFile == Board.FILE_A ? BitBoard.QUEEN_SIDE : BitBoard.KING_SIDE));
+        }
+
+        // Clear square above pawn when en passant move was made.
+        if((Board.getBBSquare(to) & this.enPassantSquare) != 0) {
+            clearSquare(to - Move.pawn(this.sideToMove));
+        }
+
+        // Cache en possible passant moves.
+        if(type == Piece.PAWN && Math.abs(Board.getRank(from)-Board.getRank(to)) == 2) {
+            this.enPassantSquare = Board.getBBSquare(from + Move.pawn(this.sideToMove));
+        } else {
+            this.enPassantSquare = 0;
+        }
+
         int move = Move.make(Move.Type.NORMAL, this.pieces[from], from, to);
-        int type = Piece.getType(this.pieces[from]);
+        this.moves[(++this.halfmoveCount)-1] = move;
+
+        this.sideToMove = Piece.Color.opposite(this.sideToMove);
+    }
+
+    /**
+     * Relocate a piece from one square to another.
+     */
+    public void movePiece(int piece, int from, int to) {
         long bbFrom = Board.getBBSquare(from);
         long bbTo = Board.getBBSquare(to);
-        this.moves[(++this.halfmoveCount)-1] = move;
-        this.piecesByColor[this.sideToMove] &= ~bbFrom;
-        this.piecesByColor[Piece.Color.opposite(this.sideToMove)] &= ~bbTo;
-        this.piecesByColor[this.sideToMove] |= bbTo;
+        int color = Piece.getColor(piece);
+        int type = Piece.getColor(piece);
+        this.piecesByColor[color] &= ~bbFrom;
+        this.piecesByColor[Piece.Color.opposite(color)] &= ~bbTo;
+        this.piecesByColor[color] |= bbTo;
         this.piecesByType[type] &= ~bbFrom;
         for(int t=0;t<this.piecesByType.length;t++) this.piecesByType[t] &= ~bbTo;
         this.piecesByType[type] |= bbTo;
-        this.sideToMove = Piece.Color.opposite(this.sideToMove);
         this.pieces[to] = this.pieces[from];
         this.pieces[from] = 0;
-        
+    }
+
+    public void clearSquare(int square) {
+        long bbSquare = Board.getBBSquare(square);
+        for(int t=0;t<this.piecesByType.length;t++) this.piecesByType[t] &= ~bbSquare;
+        for(int t=0;t<this.piecesByColor.length;t++) this.piecesByColor[t] &= ~bbSquare;
+        this.pieces[square] = 0;
     }
 
     public void setCastlingRight(int color, int rookSquare) {

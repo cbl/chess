@@ -54,6 +54,17 @@ public class GameOfChess
 
         this.position.move(from, to);
         this.state.transition(Transition.Move);
+
+        return this.move(from, to);
+    }
+
+    public boolean move(int from, int to) {
+        if(!this.position.isLegal(from, to)) {
+            return false;
+        }
+        
+        this.position.move(from, to);
+        this.state.transition(Transition.Move);
         System.out.println(from+"->"+to);
 
         return true;

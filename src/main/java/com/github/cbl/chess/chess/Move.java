@@ -63,6 +63,10 @@ public class Move {
             | type;
     }
 
+    public static int pawn(int color) {
+        return color == Piece.Color.WHITE ? UP : DOWN;
+    }
+
     public static int getPiece(int move) {
         return move >> Board.Block.SQUARE_SIZE * 2 & 0b111;
     }

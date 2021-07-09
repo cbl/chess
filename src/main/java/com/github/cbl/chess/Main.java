@@ -25,8 +25,8 @@ public class Main {
             // "8/8/8/8/8/8/6b1/8 w KQkq - 1 6"
         );
         GameOfChess game = new GameOfChess(p);
-        CLI cli = new CLI();
-        cli.run();
+        // CLI cli = new CLI();
+        // cli.run();
         // System.out.println(p.toAscii(p.pseudoLegalMoves(Board.D1)));
         // // System.out.println(  
         // //     // BitBoard.toAscii(p.)
@@ -38,6 +38,7 @@ public class Main {
         // );
 
         // UI.run();
+        BoardGUI gui = new BoardGUI();
         // Runnable r = new Runnable() {
         //     @Override
         //     public void run() {

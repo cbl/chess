@@ -55,7 +55,7 @@ public class Piece {
     }
 
     public static boolean isColor(int piece, int color) {
-        return (piece & Block.COLOR) == color;
+        return (piece & Block.COLOR) >> Block.TYPE_SIZE == color;
     }
 
     public static int getType(int piece) {

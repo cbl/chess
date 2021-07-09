@@ -2,51 +2,56 @@ package com.github.cbl.chess.chess;
 
 public class MoveGenerator {
     public static long legalMoves(Position p, int square) {
-        long legal = 0, 
+        long moves = attacks(p, square);
+
+        return moves;
+    }
+
+    public static long attacks(Position p, int square) {
+        long attacks = 0, 
             pseudo = pseudoLegalMoves(p, square);
 
         if(pseudo == 0) return 0;
 
-        int sq,
-            direction,
-            piece = p.pieceAt(square),
+        int piece = p.pieceAt(square),
             usColor = Piece.getColor(piece);
-        boolean[] blocked = new boolean[4];
+        
 
         // Night moves cannot be blocked.
         if(Piece.isType(piece, Piece.KNIGHT)) {
             return pseudo & ~p.piecesByColor(usColor);
         }
 
-        // Check upper squares.
-        for(sq = square+1;sq<=Board.H8;sq++) {
+        // Filter blocked squares on upper half of the board.
+        attacks |= filterBlocked(p, pseudo, square, Move.LEFT);
+        // Filter blocked squares on lower half of the board.
+        attacks |= filterBlocked(p, pseudo, square, Move.RIGHT);
+
+        attacks &= ~p.piecesByColor(usColor);
+
+        return attacks;
+    }
+
+    protected static long filterBlocked(Position p, long pseudo, int from, int move) {
+        long legal = 0;
+        int match = 0, piece;
+        boolean[] blocked = new boolean[4];
+        for(int sq = from+move;sq<=Board.H8&&sq>=Board.A1;sq+=move) {            
             if(!BitBoard.valueAt(pseudo, sq)) continue;
-            direction = (sq-square)%8 == 0 ? 0 : (sq-square)%9 == 0 
-                ? 1 : (sq-square)%7 == 0 ? 2 : sq/8 == square/8 ? 3 : 0;
-            if(blocked[direction]) continue;
+            match = (sq-from)%8 == 0 ? 0 : (sq-from)%9 == 0 
+                ? 1 : sq/8 == from/8 ? 3 : (sq-from)%7 == 0 ? 2  : -1;
+            if(blocked[match]) continue;
 
             legal |= pseudo & Board.getBBSquare(sq);
 
             // Block direction if a piece is on the square.
-            if(p.pieceAt(sq) != 0) blocked[direction] = true;
+            if(match != -1 && (piece = p.pieceAt(sq)) != 0) {
+                blocked[match] = true;
+                if(Piece.isType(piece, Piece.PAWN) && match == 0) {
+                    legal &= ~Board.getBBSquare(sq);
+                }
+            }
         }
-
-        // Check lower squares.
-        blocked = new boolean[4];
-        for(sq = square-1;sq>=Board.A1;sq--) {
-            if(!BitBoard.valueAt(pseudo, sq)) continue;
-            direction = (sq-square)%8 == 0 ? 0 : (sq-square)%9 == 0 
-                ? 1 : (sq-square)%7 == 0 ? 2 : sq/8 == square/8 ? 3 : 0;
-            if(blocked[direction]) continue;
-
-            legal |= pseudo & Board.getBBSquare(sq);
-
-            // Block direction if a piece is on the square.
-            if(p.pieceAt(sq) != 0) blocked[direction] = true;
-        }
-
-        legal &= ~p.piecesByColor(usColor);
-
         return legal;
     }
 
@@ -63,8 +68,7 @@ public class MoveGenerator {
 
         if(Piece.isType(piece, Piece.PAWN)) {
             pseudo |= AttackIndex.pawns[usColor][square];
-            pseudo &= p.piecesByColor(themColor);
-            pseudo |= p.enPassantSquare;
+            pseudo &= p.piecesByColor(themColor) | p.enPassantSquare;
             pseudo |= pawnMoves(p, square);
         } else if(Piece.isType(piece, Piece.KING)) {
             pseudo |= castlingMoves(p, square);

@@ -52,7 +52,6 @@ public class PlayCommand extends Command
         }
 
         private void makeMove() {
-            
             Scanner scanner = new Scanner(System.in); 
             while(true) {
                 System.out.print("> ");
