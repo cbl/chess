@@ -37,9 +37,8 @@ public class BoardGUI extends JFrame implements ActionListener {
                 for(int sq = Board.A1;sq <= Board.H8;sq++) {
                     int piece = BoardGUI.this.position.pieceAt(sq);
                     String p = String.valueOf(pieceToChar.charAt(piece));
-                  //  if(p.equals("p")) p = "♟︎";
-					BoardGUI.this.board[sq].setText(p);
-					BoardGUI.this.board[sq].setFont(new Font("Default", Font.PLAIN, 36));
+                    BoardGUI.this.board[sq].setText(p);
+		    BoardGUI.this.board[sq].setFont(new Font("Default", Font.PLAIN, 36));
                     BoardGUI.this.board[sq].setText(p);
                     BoardGUI.this.board[sq].setForeground(Piece.isColor(piece, Piece.Color.WHITE) ? Color.WHITE : Color.BLACK);
                 }
