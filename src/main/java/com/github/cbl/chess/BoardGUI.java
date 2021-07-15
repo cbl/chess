@@ -24,7 +24,6 @@ import com.github.cbl.chess.notations.Notation;
 import com.github.cbl.chess.chess.GameOfChess;
 import com.github.cbl.chess.util.StateMachine;
 import com.github.cbl.chess.util.Observer;
-
 import com.github.cbl.chess.chess.Board;
 
 
@@ -37,9 +36,8 @@ public class BoardGUI extends JFrame implements ActionListener {
                 for(int sq = Board.A1;sq <= Board.H8;sq++) {
                     int piece = BoardGUI.this.position.pieceAt(sq);
                     String p = String.valueOf(pieceToChar.charAt(piece));
-                    BoardGUI.this.board[sq].setText(p);
-		    BoardGUI.this.board[sq].setFont(new Font("Default", Font.PLAIN, 36));
-                    BoardGUI.this.board[sq].setText(p);
+					BoardGUI.this.board[sq].setText(p);
+					BoardGUI.this.board[sq].setFont(new Font("Mx Boli", Font.PLAIN, 45));
                     BoardGUI.this.board[sq].setForeground(Piece.isColor(piece, Piece.Color.WHITE) ? Color.WHITE : Color.BLACK);
                 }
                 return;
