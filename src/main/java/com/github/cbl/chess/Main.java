@@ -39,7 +39,7 @@ public class Main {
         // );
 
         // UI.run();
-        //BoardGUI gui = new BoardGUI();
+        BoardGUI gui = new BoardGUI();
         // Runnable r = new Runnable() {
         //     @Override
         //     public void run() {
