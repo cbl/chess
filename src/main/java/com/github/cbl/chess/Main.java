@@ -25,6 +25,7 @@ public class Main {
             // "8/8/8/8/8/8/6b1/8 w KQkq - 1 6"
         );
         GameOfChess game = new GameOfChess(p);
+        System.out.println(BitBoard.toAscii(BitBoard.FILE_A | BitBoard.FILE_B));        
         // CLI cli = new CLI();
         // cli.run();
         // System.out.println(p.toAscii(p.pseudoLegalMoves(Board.D1)));
@@ -38,7 +39,7 @@ public class Main {
         // );
 
         // UI.run();
-        BoardGUI gui = new BoardGUI();
+        //BoardGUI gui = new BoardGUI();
         // Runnable r = new Runnable() {
         //     @Override
         //     public void run() {
