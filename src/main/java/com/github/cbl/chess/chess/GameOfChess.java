@@ -52,7 +52,7 @@ public class GameOfChess
         int to = fromTo & 0b111111;
         int from = (fromTo >> 6) & 0b111111;
 
-        this.position.move(from, to);
+        this.position.push(new Move(from, to));
         this.state.transition(Transition.Move);
 
         return this.move(from, to);
@@ -63,7 +63,7 @@ public class GameOfChess
             return false;
         }
         
-        this.position.move(from, to);
+        this.position.push(new Move(from, to));
         this.state.transition(Transition.Move);
         System.out.println(from+"->"+to);
 

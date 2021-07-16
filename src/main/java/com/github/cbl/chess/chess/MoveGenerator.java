@@ -42,13 +42,13 @@ public class MoveGenerator {
                 ? 1 : sq/8 == from/8 ? 3 : (sq-from)%7 == 0 ? 2  : -1;
             if(blocked[match]) continue;
 
-            legal |= pseudo & Board.getBBSquare(sq);
+            legal |= pseudo & Board.BB_SQUARES[sq];
 
             // Block direction if a piece is on the square.
             if(match != -1 && (piece = p.pieceAt(sq)) != 0) {
                 blocked[match] = true;
                 if(Piece.isType(piece, Piece.PAWN) && match == 0) {
-                    legal &= ~Board.getBBSquare(sq);
+                    legal &= ~Board.BB_SQUARES[sq];
                 }
             }
         }
@@ -64,11 +64,12 @@ public class MoveGenerator {
         int usColor = Piece.getColor(piece);
         int themColor = Piece.Color.opposite(usColor);
         
+        System.out.print(type);
         pseudo |= AttackIndex.pseudo[type][square];
 
         if(Piece.isType(piece, Piece.PAWN)) {
             pseudo |= AttackIndex.pawns[usColor][square];
-            pseudo &= p.piecesByColor(themColor) | p.enPassantSquare;
+            pseudo &= p.piecesByColor(themColor) | p.epSquare;
             pseudo |= pawnMoves(p, square);
         } else if(Piece.isType(piece, Piece.KING)) {
             pseudo |= castlingMoves(p, square);
@@ -85,13 +86,13 @@ public class MoveGenerator {
         // Can move two up if pawn is on starting rank.
         boolean canMoveTwoFoward = Board.isRank(square, startingRank);
         
-        return Board.getBBSquare(square + forward) 
-            | (canMoveTwoFoward ? Board.getBBSquare(square + forward * 2) : 0);
+        return Board.BB_SQUARES[square + forward] 
+            | (canMoveTwoFoward ? Board.BB_SQUARES[square + forward * 2] : 0);
     }
 
     protected static long castlingMoves(Position p, int square) {
         int usColor = Piece.getColor(p.pieceAt(square));
-        long bbSquare = Board.getBBSquare(square);
+        long bbSquare = Board.BB_SQUARES[square];
         long castleRight = BitBoard.shiftRight(bbSquare, 2);
         long castleLeft = BitBoard.shiftLeft(bbSquare, 2);
 

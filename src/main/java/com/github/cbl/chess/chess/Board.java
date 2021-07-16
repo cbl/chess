@@ -80,6 +80,8 @@ public class Board {
     public static final int SQUARE_COUNT = 64;
     public static final int SQUARE_NONE = 64;
 
+    
+
     public static final int FILE_A = 0;
     public static final int FILE_B = 1;
     public static final int FILE_C = 2;
@@ -100,9 +102,33 @@ public class Board {
     public static final int RANK_8 = 7;
     public static final int RANK_NONE = 8;
 
+    public static final int[] SQUARES = {
+        A1,B1,C1,D1,E1,F1,G1,H1,
+        A2,B2,C2,D2,E2,F2,G2,H2,
+        A3,B3,C3,D3,E3,F3,G3,H3,
+        A4,B4,C4,D4,E4,F4,G4,H4,
+        A5,B5,C5,D5,E5,F5,G5,H5,
+        A6,B6,C6,D6,E6,F6,G6,H6,
+        A7,B7,C7,D7,E7,F7,G7,H7,
+        A8,B8,C8,D8,E8,F8,G8,H8,
+    };
+
+    public static final long[] BB_SQUARES = generateBBSquares();
+
     public static class Block {
         public static final int SQUARE_SIZE = 6;
         public static final int SQUARE = ~(~1 << 5);
+    }
+
+    private static final long[] generateBBSquares()
+    {
+        long[] bbSquares = new long[SQUARE_COUNT];
+
+        for(int sq = A1;sq<=H8;sq++) {
+            bbSquares[sq] = 0x1L << sq;
+        }
+
+        return bbSquares;
     }
 
     /**
@@ -162,13 +188,6 @@ public class Board {
     }
 
     /**
-     * Convert board square to BitBoard square.
-     */
-    public static long getBBSquare(int square) {
-        return 0x1L << square;
-    }
-
-    /**
      * Convert board BitBoard square to square.
      */
     public static int fromBBSquare(long square) {
@@ -181,6 +200,6 @@ public class Board {
      */
     public static long getSafeBBSquare(int square) {
 
-        return isOnBoard(square) ? getBBSquare(square) : 0;
+        return isOnBoard(square) ? BB_SQUARES[square] : 0;
     }
 }

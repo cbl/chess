@@ -1,5 +1,8 @@
 package com.github.cbl.chess.chess;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class BitBoard {
     public static final long WHITE_SQUARES = 0x55AA55AA55AA55AAL;
     public static final long BLACK_SQUARES = 0xAA55AA55AA55AA55L;
@@ -109,6 +112,14 @@ public class BitBoard {
     public static final long ROOK_SQUARES = A1 | A8 | H1 | H8;
 
     public static final long KNIGHT_MASK = B1 | A2;
+
+    public static final long[] FILES = {
+        FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H
+    };
+
+    public static final long[] RANKS = {
+        RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8
+    };
 
 
     /**
@@ -231,6 +242,34 @@ public class BitBoard {
      */
     public static boolean valueAt(long board, int square) {
         return ((board >> square) & 1) == 1;
+    }
+
+    /**
+     * Get list of squares from BitBoard.
+     */
+    public static List<Long> toList(long bb)
+    {
+        List<Long> squares = new ArrayList<Long>();
+
+        for(int sq=Board.A1;sq<=Board.H8;sq++) {
+            if(valueAt(bb, sq)) squares.add(Board.BB_SQUARES[sq]);
+        }
+
+        return squares;
+    }
+
+    /**
+     * Get reversed list of squares from BitBoard.
+     */
+    public static List<Long> toReversedList(long bb)
+    {
+        List<Long> squares = new ArrayList<Long>();
+
+        for(int sq=Board.H8;sq>=Board.A1;sq--) {
+            if(valueAt(bb, sq)) squares.add(Board.BB_SQUARES[sq]);
+        }
+
+        return squares;
     }
 
     /**

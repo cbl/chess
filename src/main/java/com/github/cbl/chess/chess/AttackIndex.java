@@ -3,12 +3,16 @@ package com.github.cbl.chess.chess;
 import java.lang.Math;
 
 /**
- * The MoveIndex is an index to lookup all possible pseudo moves for any piece 
- * at any square.
+ * The AttackIndex class is an index to lookup all possible pseudo moves for any 
+ * piece at any square.
  */
 public class AttackIndex {
     public static long[][] pawns = new long[3][];
     public static long[][] pseudo = new long[7][];
+    public static long[][] streched = new long[Board.SQUARE_COUNT][];
+    public static long[] ranks = new long[Board.SQUARE_COUNT];
+    public static long[] files = new long[Board.SQUARE_COUNT];
+    public static long[] diagonals = new long[Board.SQUARE_COUNT];
 
     /**
      * Singleton pattern.
@@ -48,6 +52,31 @@ public class AttackIndex {
 
             for (int move: Move.KING_MOVES)
                 pseudo[Piece.KING][sq] |= Board.getSafeBBSquare(sq + move);
+
+            AttackIndex.files[sq] = BitBoard.FILES[Board.getFile(sq)];
+            AttackIndex.ranks[sq] = BitBoard.RANKS[Board.getRank(sq)];
+            AttackIndex.diagonals[sq] = pseudo[Piece.BISHOP][sq];
+        }
+
+        this.strechIndex();
+    }
+
+    protected void strechIndex()
+    {
+        for(int a : Board.SQUARES) {
+            streched[a] = new long[Board.SQUARE_COUNT];
+            
+            for(int b : Board.SQUARES) {
+                long bbB = Board.BB_SQUARES[b];
+
+                if((diagonals[a] & bbB) != 0) {
+                    streched[a][b] = diagonals[a];
+                } else if((ranks[a] & bbB) != 0) {
+                    streched[a][b] = ranks[a];
+                } else if((files[a] & bbB) != 0) {
+                    streched[a][b] = files[a];
+                }
+            }
         }
     }
 
@@ -61,10 +90,13 @@ public class AttackIndex {
 
     protected long pawnAttacks(int color, int square) {
         int forward = color == Piece.Color.WHITE ? Move.UP : Move.DOWN;
+        long attacks = 0;
 
-        return BitBoard.safe(0
-            | Board.getBBSquare(square + forward + Move.RIGHT)
-            | Board.getBBSquare(square + forward + Move.LEFT)
-        );
+        if(Board.isOnBoard(square + forward + Move.RIGHT))
+            attacks |= Board.BB_SQUARES[square + forward + Move.RIGHT];
+        if(Board.isOnBoard(square + forward + Move.LEFT))
+            attacks |= Board.BB_SQUARES[square + forward + Move.LEFT];
+
+        return attacks;
     }
 }

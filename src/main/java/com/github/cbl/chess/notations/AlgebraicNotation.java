@@ -24,7 +24,8 @@ public class AlgebraicNotation implements Notation {
 
     public static long parseBBSquare(String square)
     {
-        return Board.getBBSquare(parseSquare(square));
+        int parsed = parseSquare(square);
+        return Board.isOnBoard(parsed) ? Board.BB_SQUARES[parsed] : 0;
     }
 
     /**
@@ -83,7 +84,7 @@ public class AlgebraicNotation implements Notation {
                 while(cache != 0) {
                     long square = Long.lowestOneBit(cache);
                     cache &= ~square;
-                    if((pos.legalMoves(square) & Board.getBBSquare(to)) != 0) {
+                    if((pos.legalMoves(square) & Board.BB_SQUARES[to]) != 0) {
                         pieces |= square;
                         from = Board.fromBBSquare(square);
                     }

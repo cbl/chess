@@ -86,4 +86,38 @@ public class Move {
                 ? Board.isRank(getToSquare(move), Board.RANK_1)
                 : Board.isRank(getToSquare(move), Board.RANK_8);
     }
+
+    public int from;
+    public int to;
+    public int promotion;
+
+    public Move(int from, int to)
+    {
+        this.from = from;
+        this.to = to;
+    }
+
+    /**
+     * Determines if the given move is a capture or a pawn move.
+     * 
+     * > The fifty-move rule in chess states that a player can claim a draw if 
+     * > no capture has been made and no pawn has been moved in the last fifty 
+     * > moves.
+     * 
+     * @see https://en.wikipedia.org/wiki/Fifty-move_rule
+     */
+    public boolean isZeroing(Position pos) {
+        long touched = Board.BB_SQUARES[from] ^ Board.BB_SQUARES[to];
+
+        return (touched & pos.pawns(pos.sideToMove)) != 0 
+            || (touched & pos.piecesByColor(Piece.Color.opposite(pos.sideToMove))) != 0;
+    }
+
+    /**
+     * Indicates if the move is a promotion.
+     */
+    public boolean isPromotion()
+    {
+        return this.promotion != 0;
+    }
 }
