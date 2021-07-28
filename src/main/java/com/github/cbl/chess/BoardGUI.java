@@ -85,7 +85,7 @@ public class BoardGUI extends JFrame implements ActionListener {
 		newGame.setFocusable(false);
 		newGame.setForeground(Color.LIGHT_GRAY);
 		newGame.setBackground(Color.black);
-//		newGame.addActionListener(e -> );
+		newGame.addActionListener(e -> newGame());
 		
 		resign = new JButton();
 		resign.setBounds(2*tileSize+25, tileSize*10, 2*tileSize, tileSize);
