@@ -88,7 +88,6 @@ public class BoardGUI extends JFrame implements ActionListener {
 		newGame.setFocusable(false);
 		newGame.setForeground(Color.LIGHT_GRAY);
 		newGame.setBackground(Color.black);
-		newGame.addActionListener(e -> newGame());
 		
 		resign = new JButton();
 		resign.setBounds(tileSize*11, 25, 2*tileSize, tileSize);
@@ -96,7 +95,6 @@ public class BoardGUI extends JFrame implements ActionListener {
 		resign.setFocusable(false);
 		resign.setForeground(Color.LIGHT_GRAY);
 		resign.setBackground(Color.black);
-		resign.addActionListener(e -> newGame());		//Add outlay of winner before starting new game
 		
 		loadGame = new JButton();
 		loadGame.setBounds(tileSize*9, tileSize+50, 2*tileSize, tileSize);
@@ -148,9 +146,6 @@ public class BoardGUI extends JFrame implements ActionListener {
 		gamelog.setBounds(9*tileSize,4*tileSize,4*tileSize, 4*tileSize);
 		Border border = BorderFactory.createLineBorder(Color.BLACK, 5);
 		gamelog.setBorder(border);
-
-
-
 
         for (int r = 7; r >= 0; r--) {
             for (int f = 0; f <= 7; f++) {
@@ -270,22 +265,38 @@ public class BoardGUI extends JFrame implements ActionListener {
 		frame.add(yCoordinatesPanel8);
 		frame.add(xCoordinatesPanel);
 
+		newGame.addActionListener(e -> newGame(frame));
+		resign.addActionListener(e -> resign(frame));		//Add outlay of winner before starting new game
 		saveGame.addActionListener(e -> save(frame));
 		loadGame.addActionListener(e -> load(frame));
 
-        this.newGame();
-	
+        this.newGame(frame);
 	}
 
-    protected void newGame() {
+    protected void newGame(JFrame frame) {
         this.position = fen.parse(
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
             // "8/8/8/8/8/8/6b1/8 w KQkq - 1 6"
         );
+		frame.remove(loadalg);
+		frame.remove(loadpgm);
+		frame.remove(savealg);
+		frame.remove(savepgm);
+		frame.add(saveGame);
+		frame.add(loadGame);
+		frame.revalidate(); 
+		frame.repaint();
         this.game = new GameOfChess(this.position);
         this.game.state().addObserver(new GameObserver());
         this.game.start();
     }
+
+	protected void resign(JFrame frame)
+	{
+	//	JLabel winner = new JLabel;
+	//	winner.setText("Winner: "+Player.getWinner);
+		newGame(frame);
+	}
 
 	protected void save(JFrame frame)
 	{
