@@ -20,6 +20,7 @@ import com.github.cbl.chess.chess.AttackIndex;
 import com.github.cbl.chess.chess.Position;
 import com.github.cbl.chess.console.CLI;
 import com.github.cbl.chess.chess.Piece;
+import com.github.cbl.chess.notations.AlgebraicNotation;
 import com.github.cbl.chess.notations.FenNotation;
 import com.github.cbl.chess.notations.Notation;
 import com.github.cbl.chess.chess.GameOfChess;
@@ -32,6 +33,30 @@ import com.github.cbl.chess.chess.Board;
 public class BoardGUI extends JFrame implements ActionListener {
     int tileSize = 75;
     String getWinnder;
+	JButton newGame;
+	JButton resign;
+	JButton back;
+	JButton foward;
+	JButton loadGame;
+	JButton saveGame;
+    JButton saveGameDuringGame;
+	JButton savepgm;
+	JButton savealg;
+	JButton loadpgm;
+	JButton loadalg;
+    JFrame frame = new JFrame();
+	JTextArea gamelog;
+    int selectedSquare = Board.SQUARE_NONE;
+	String fenString;
+	String algString;
+
+    private static Notation fen = new FenNotation();
+	private static Notation alg = new AlgebraicNotation();
+    Position position;
+    GameOfChess game;
+	JButton[] board = new JButton[Board.SQUARE_COUNT];
+
+
     private static final String pieceToChar = " ♙♘♗♖♕♔  ♟♞♝♜♛♚ ";
 
     private class GameObserver extends Observer {
@@ -58,29 +83,6 @@ public class BoardGUI extends JFrame implements ActionListener {
             }
         }
     }
-	JButton newGame;
-	JButton resign;
-	JButton back;
-	JButton foward;
-	JButton loadGame;
-	JButton saveGame;
-    JButton saveGameDuringGame;
-	JButton savepgm;
-	JButton savealg;
-	JButton loadpgm;
-	JButton loadalg;
-    JLabel winner;
-    JButton ok;
-    JFrame frame = new JFrame();
-	JTextArea gamelog;
-    int selectedSquare = Board.SQUARE_NONE;
-
-    private static Notation fen = new FenNotation();
-    Position position;
-    GameOfChess game;
-
-
-    JButton[] board = new JButton[Board.SQUARE_COUNT];
 	
 	public BoardGUI(/*GameData d*/)
 	{
@@ -127,7 +129,7 @@ public class BoardGUI extends JFrame implements ActionListener {
 		loadpgm.setFocusable(false);
 		loadpgm.setForeground(Color.LIGHT_GRAY);
 		loadpgm.setBackground(Color.black);
-//		loadpgm.addActionListener(e -> parseFen(fenString));
+		loadpgm.addActionListener(e -> parseFen());
 		
 		loadalg = new JButton();
 		loadalg.setBounds(tileSize*11, 75+tileSize*2, 2*tileSize, tileSize);
@@ -135,7 +137,7 @@ public class BoardGUI extends JFrame implements ActionListener {
 		loadalg.setFocusable(false);
 		loadalg.setForeground(Color.LIGHT_GRAY);
 		loadalg.setBackground(Color.black);
-//		loadalg.addActionListener(e -> parseAlg(algString));
+		loadalg.addActionListener(e -> parseAlg());
 
 		savepgm = new JButton();
 		savepgm.setBounds(tileSize*9, 75+tileSize*2, 2*tileSize, tileSize);
@@ -175,8 +177,6 @@ public class BoardGUI extends JFrame implements ActionListener {
             }
         }
 
-
-		
 		//Axis lable
 		JPanel xCoordinatesPanel = new JPanel();
 		xCoordinatesPanel.setBounds(0, 8*tileSize, 8*tileSize, 2*tileSize);
@@ -280,7 +280,7 @@ public class BoardGUI extends JFrame implements ActionListener {
 		resign.addActionListener(e -> resign(frame));		//Add outlay of winner before starting new game
 		saveGame.addActionListener(e -> save(frame));
 		loadGame.addActionListener(e -> load(frame));
-        	saveGameDuringGame.addActionListener(e -> saveDuringGame(frame));
+        saveGameDuringGame.addActionListener(e -> saveDuringGame(frame));
 
         this.newGame(frame);
 	}
@@ -288,18 +288,21 @@ public class BoardGUI extends JFrame implements ActionListener {
     protected void newGame(JFrame frame) {
         this.position = fen.parse(
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
+//			"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+//			"rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
+
             // "8/8/8/8/8/8/6b1/8 w KQkq - 1 6"
         );
 		frame.remove(loadalg);
 		frame.remove(loadpgm);
 		frame.remove(savealg);
 		frame.remove(savepgm);
-       		frame.remove(resign);
-    		frame.remove(saveGameDuringGame);
-        	frame.add(newGame);
+        frame.remove(resign);
+		frame.remove(saveGameDuringGame);
+        frame.add(newGame);
 		frame.add(saveGame);
 		frame.add(loadGame);
-        	gamelog.setText("");
+        gamelog.setText("");
 		frame.revalidate(); 
 		frame.repaint();
         this.game = new GameOfChess(this.position);
@@ -309,14 +312,14 @@ public class BoardGUI extends JFrame implements ActionListener {
 
 	protected void resign(JFrame frame)
 	{
-         if (BoardGUI.this.position.sideToMove == Piece.Color.WHITE)
-            { 
-                gamelog.setText("White resigns.\n Black wins!");
-            }
-            else
-            {
-                gamelog.setText("Black resigns.\n White wins!");
-            }
+        if (BoardGUI.this.position.sideToMove == Piece.Color.WHITE)
+		{ 
+        	gamelog.setText("White resigns.\n Black wins!");
+        }
+        else
+        {
+        	gamelog.setText("Black resigns.\n White wins!");
+        }
         frame.add(newGame);
         frame.remove(resign);
         frame.repaint();
@@ -358,22 +361,28 @@ public class BoardGUI extends JFrame implements ActionListener {
 		frame.repaint();
 	}
 
-	protected void parseFen(String fenString)
+	protected void parseFen()
 	{
+		this.fenString = gamelog.getText();
 		this.position = fen.parse(fenString);
 		this.game = new GameOfChess(this.position);
         this.game.state().addObserver(new GameObserver());
         this.game.start();
 	}
 
-	protected void parseAlg(String fenString)
+	protected void parseAlg()
 	{
-
+		this.algString = gamelog.getText();
+		this.position = alg.parse(algString);
+		System.out.println(this.position);
+		this.game = new GameOfChess(this.position);
+        this.game.state().addObserver(new GameObserver());
+        this.game.start();
 	}
 
 	protected void createFen()
 	{
-
+		
 	}
 
 	protected void createAlg()
