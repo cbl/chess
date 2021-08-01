@@ -280,7 +280,7 @@ public class BoardGUI extends JFrame implements ActionListener {
 		resign.addActionListener(e -> resign(frame));		//Add outlay of winner before starting new game
 		saveGame.addActionListener(e -> save(frame));
 		loadGame.addActionListener(e -> load(frame));
-        saveGameDuringGame.addActionListener(e -> saveDuringGame(frame));
+        	saveGameDuringGame.addActionListener(e -> saveDuringGame(frame));
 
         this.newGame(frame);
 	}
@@ -294,11 +294,12 @@ public class BoardGUI extends JFrame implements ActionListener {
 		frame.remove(loadpgm);
 		frame.remove(savealg);
 		frame.remove(savepgm);
-        frame.remove(resign);
-        frame.add(newGame);
+       		frame.remove(resign);
+    		frame.remove(saveGameDuringGame);
+        	frame.add(newGame);
 		frame.add(saveGame);
 		frame.add(loadGame);
-        gamelog.setText("");
+        	gamelog.setText("");
 		frame.revalidate(); 
 		frame.repaint();
         this.game = new GameOfChess(this.position);
