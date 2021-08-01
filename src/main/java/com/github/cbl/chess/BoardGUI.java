@@ -64,21 +64,20 @@ public class BoardGUI extends JFrame implements ActionListener {
 	JButton foward;
 	JButton loadGame;
 	JButton saveGame;
-    JButton saveGameDuringGame;
+  	JButton saveGameDuringGame;
 	JButton savepgm;
 	JButton savealg;
 	JButton loadpgm;
 	JButton loadalg;
-    JLabel winner;
-    JButton ok;
-    JFrame frame = new JFrame();
+  	JLabel winner;
+    	JButton ok;
+    	JFrame frame = new JFrame();
 	JTextArea gamelog;
-    int selectedSquare = Board.SQUARE_NONE;
+    	int selectedSquare = Board.SQUARE_NONE;
 
     private static Notation fen = new FenNotation();
     Position position;
     GameOfChess game;
-
 
     JButton[] board = new JButton[Board.SQUARE_COUNT];
 	
@@ -114,7 +113,7 @@ public class BoardGUI extends JFrame implements ActionListener {
 		saveGame.setForeground(Color.LIGHT_GRAY);
 		saveGame.setBackground(Color.black);
 
-        saveGameDuringGame = new JButton();
+     		saveGameDuringGame = new JButton();
 		saveGameDuringGame.setBounds(tileSize*9, tileSize+50, 4*tileSize, tileSize);
 		saveGameDuringGame.setText("Export Game");
 		saveGameDuringGame.setFocusable(false);
@@ -153,15 +152,7 @@ public class BoardGUI extends JFrame implements ActionListener {
 		savealg.setBackground(Color.black);
 		savealg.addActionListener(e -> createAlg());
 
-        winner = new JLabel();
-        winner.setBounds(tileSize*4,tileSize*2,tileSize*4,tileSize*2);
-
-        ok = new JButton();
-        ok.setBounds(tileSize*5,tileSize*3,tileSize*2,tileSize);
-        ok.setBounds(tileSize*5,tileSize*5,2*tileSize,tileSize);
-        ok.setText("OK");
-		
-		gamelog = new JTextArea();
+        	gamelog = new JTextArea();
 		gamelog.setBounds(9*tileSize,4*tileSize,4*tileSize, 4*tileSize);
 		Border border = BorderFactory.createLineBorder(Color.BLACK, 5);
 		gamelog.setBorder(border);
@@ -182,8 +173,6 @@ public class BoardGUI extends JFrame implements ActionListener {
                 board[square] = btn;
             }
         }
-
-
 		
 		//Axis lable
 		JPanel xCoordinatesPanel = new JPanel();
@@ -257,7 +246,6 @@ public class BoardGUI extends JFrame implements ActionListener {
 		yCoordinatesLabel8.setText("8");
 		yCoordinatesLabel8.setFont(new Font("My Boli", Font.PLAIN,tileSize));
 		yCoordinatesPanel8.add(yCoordinatesLabel8);
-
 		
 		//Frame
 		frame.setResizable(false);
@@ -288,7 +276,7 @@ public class BoardGUI extends JFrame implements ActionListener {
 		resign.addActionListener(e -> resign(frame));		//Add outlay of winner before starting new game
 		saveGame.addActionListener(e -> save(frame));
 		loadGame.addActionListener(e -> load(frame));
-        saveGameDuringGame.addActionListener(e -> saveDuringGame(frame));
+       		saveGameDuringGame.addActionListener(e -> saveDuringGame(frame));
 
         this.newGame(frame);
 	}
@@ -302,17 +290,17 @@ public class BoardGUI extends JFrame implements ActionListener {
 		frame.remove(loadpgm);
 		frame.remove(savealg);
 		frame.remove(savepgm);
-        frame.remove(resign);
-        frame.add(newGame);
+		frame.remove(resign);
+		frame.add(newGame);
 		frame.add(saveGame);
 		frame.add(loadGame);
-        saveGame.setBounds(tileSize*11, tileSize+50, 2*tileSize, tileSize);
-        gamelog.setText("");
+		saveGame.setBounds(tileSize*11, tileSize+50, 2*tileSize, tileSize);
+		gamelog.setText("");
 		frame.revalidate(); 
 		frame.repaint();
-        this.game = new GameOfChess(this.position);
-        this.game.state().addObserver(new GameObserver());
-        this.game.start();
+		this.game = new GameOfChess(this.position);
+		this.game.state().addObserver(new GameObserver());
+		this.game.start();
     }
 
 	protected void resign(JFrame frame)
