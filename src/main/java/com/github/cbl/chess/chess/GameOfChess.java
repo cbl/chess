@@ -41,32 +41,10 @@ public class GameOfChess
         return ((State) this.state.current()) == state;
     }
 
-    public boolean move(String move) {
-        if(this.isState(State.Over)) {
-            return false;
-        }
-
-        int fromTo = AlgebraicNotation.parseSANMove(this.position, move);
-        if(fromTo == 0) return false;
-
-        int to = fromTo & 0b111111;
-        int from = (fromTo >> 6) & 0b111111;
-
-        this.position.push(new Move(from, to));
+    public boolean push(Move move) {
+        this.position.push(move);
         this.state.transition(Transition.Move);
-
-        return this.move(from, to);
-    }
-
-    public boolean move(int from, int to) {
-        if(!this.position.isLegal(from, to)) {
-            return false;
-        }
-        
-        this.position.push(new Move(from, to));
-        this.state.transition(Transition.Move);
-        System.out.println(from+"->"+to);
-
+        System.out.println(move.from+"->"+move.to);
         return true;
     }
 }

@@ -37,7 +37,7 @@ public class MoveGenerator {
         int match = 0, piece;
         boolean[] blocked = new boolean[4];
         for(int sq = from+move;sq<=Board.H8&&sq>=Board.A1;sq+=move) {            
-            if(!BitBoard.valueAt(pseudo, sq)) continue;
+            if(!Bitboard.valueAt(pseudo, sq)) continue;
             match = (sq-from)%8 == 0 ? 0 : (sq-from)%9 == 0 
                 ? 1 : sq/8 == from/8 ? 3 : (sq-from)%7 == 0 ? 2  : -1;
             if(blocked[match]) continue;
@@ -65,14 +65,14 @@ public class MoveGenerator {
         int themColor = Piece.Color.opposite(usColor);
         
         System.out.print(type);
-        pseudo |= AttackIndex.pseudo[type][square];
+        pseudo |= BBIndex.pseudo[type][square];
 
         if(Piece.isType(piece, Piece.PAWN)) {
-            pseudo |= AttackIndex.pawns[usColor][square];
+            pseudo |= BBIndex.pawns[usColor][square];
             pseudo &= p.piecesByColor(themColor) | p.epSquare;
             pseudo |= pawnMoves(p, square);
         } else if(Piece.isType(piece, Piece.KING)) {
-            pseudo |= castlingMoves(p, square);
+            pseudo |= generateCastlingMoves(p, square);
         }
 
         return pseudo;
@@ -90,11 +90,11 @@ public class MoveGenerator {
             | (canMoveTwoFoward ? Board.BB_SQUARES[square + forward * 2] : 0);
     }
 
-    protected static long castlingMoves(Position p, int square) {
+    public static long generateCastlingMoves(Position p, int square) {
         int usColor = Piece.getColor(p.pieceAt(square));
         long bbSquare = Board.BB_SQUARES[square];
-        long castleRight = BitBoard.shiftRight(bbSquare, 2);
-        long castleLeft = BitBoard.shiftLeft(bbSquare, 2);
+        long castleRight = Bitboard.shiftRight(bbSquare, 2);
+        long castleLeft = Bitboard.shiftLeft(bbSquare, 2);
 
         return (castleRight | castleLeft) & p.castlingRightsFor(usColor);
     }

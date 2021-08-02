@@ -1,8 +1,8 @@
 package com.github.cbl.chess;
 
-import com.github.cbl.chess.chess.BitBoard;
+import com.github.cbl.chess.chess.Bitboard;
 import com.github.cbl.chess.chess.Board;
-import com.github.cbl.chess.chess.AttackIndex;
+import com.github.cbl.chess.chess.BBIndex;
 import com.github.cbl.chess.chess.Position;
 import com.github.cbl.chess.console.CLI;
 import com.github.cbl.chess.chess.Piece;
@@ -25,29 +25,14 @@ public class Main {
             // "8/8/8/8/8/8/6b1/8 w KQkq - 1 6"
         );
         GameOfChess game = new GameOfChess(p);
-        System.out.println(BitBoard.toAscii(BitBoard.FILE_A | BitBoard.FILE_B));        
         // CLI cli = new CLI();
         // cli.run();
-        // System.out.println(p.toAscii(p.pseudoLegalMoves(Board.D1)));
-        // // System.out.println(  
-        // //     // BitBoard.toAscii(p.)
-        // //     BitBoard.toAscii(AttackIndex.pseudo[Piece.BISHOP][Board.G2])
-        // // );
-        // System.out.println(
-        //     // BitBoard.toAscii(p.)
-        //     BitBoard.toAscii(p.castlingRights)
-        // );
 
         // UI.run();
         BoardGUI gui = new BoardGUI();
-        // Runnable r = new Runnable() {
-        //     @Override
-        //     public void run() {
-        //         UI ui = new DesktopUI();
-        //         ui.mount();
-        //     }
-        // };
-        // SwingUtilities.invokeLater(r);
+
+        System.out.println(Bitboard.toAscii(BBIndex.between[0][16]));
+        System.out.println(Bitboard.toAscii(BBIndex.streched[0][4]));
     }
 }
 

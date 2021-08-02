@@ -1,6 +1,7 @@
 package com.github.cbl.chess.notations;
 
-import com.github.cbl.chess.chess.BitBoard;
+import com.github.cbl.chess.chess.Bitboard;
+import com.github.cbl.chess.chess.MoveList;
 import com.github.cbl.chess.chess.Board;
 import com.github.cbl.chess.chess.Piece;
 import com.github.cbl.chess.chess.Position;
@@ -42,7 +43,7 @@ public class AlgebraicNotation implements Notation {
         int from = Board.SQUARE_NONE, 
             to = Board.SQUARE_NONE, 
             piece = Piece.PAWN;
-        long possibleOccurrence = BitBoard.QUEEN_SIDE | BitBoard.KING_SIDE;
+        long possibleOccurrence = Bitboard.QUEEN_SIDE | Bitboard.KING_SIDE;
         boolean takes = false;
         boolean check = false;
 
@@ -52,9 +53,9 @@ public class AlgebraicNotation implements Notation {
                 piece = charToPiece(ch);
                 if(i > (move.length()-4)) continue;
                 if(charToFile(move.charAt(i+1)) != -1)
-                    possibleOccurrence &= BitBoard.file(charToFile(move.charAt(i+1)));
+                    possibleOccurrence &= Bitboard.file(charToFile(move.charAt(i+1)));
                 if((move.charAt(i+2) + '0') != -1)
-                    possibleOccurrence &= BitBoard.rank((move.charAt(i+2) + '0'));
+                    possibleOccurrence &= Bitboard.rank((move.charAt(i+2) + '0'));
             }
             if(ch == 'x') takes = true;
         }
@@ -67,14 +68,14 @@ public class AlgebraicNotation implements Notation {
 
         if(piece == Piece.PAWN) {
             if(takes) {
-                possibleOccurrence = BitBoard.file(charToFile(move.charAt(move.indexOf('x')-1)));
+                possibleOccurrence = Bitboard.file(charToFile(move.charAt(move.indexOf('x')-1)));
             } else {
-                possibleOccurrence &= BitBoard.file(to);
+                possibleOccurrence &= Bitboard.file(to);
             }
         } 
         
         if(piece == Piece.KING) {
-            from = Board.fromBBSquare(pos.piecesByColorAndType(pos.sideToMove, Piece.KING));
+            from = Board.fromBB(pos.piecesByColorAndType(pos.sideToMove, Piece.KING));
         } else {
             long pieces = pos.piecesByColorAndType(pos.sideToMove, piece);
             
@@ -84,16 +85,17 @@ public class AlgebraicNotation implements Notation {
                 while(cache != 0) {
                     long square = Long.lowestOneBit(cache);
                     cache &= ~square;
-                    if((pos.legalMoves(square) & Board.BB_SQUARES[to]) != 0) {
+                    MoveList moves = pos.generateLegalMoves(square);
+                    if((moves.getToMask() & Board.BB_SQUARES[to]) != 0) {
                         pieces |= square;
-                        from = Board.fromBBSquare(square);
+                        from = Board.fromBB(square);
                     }
                 }
                 if(Long.bitCount(pieces & possibleOccurrence) > 1) {
                     return 0;
                 }
             } else {
-                from = Board.fromBBSquare(pieces & possibleOccurrence);
+                from = Board.fromBB(pieces & possibleOccurrence);
             };
         }
 

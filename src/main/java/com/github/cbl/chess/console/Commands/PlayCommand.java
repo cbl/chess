@@ -53,15 +53,15 @@ public class PlayCommand extends Command
 
         private void makeMove() {
             Scanner scanner = new Scanner(System.in); 
-            while(true) {
-                System.out.print("> ");
-                String move = scanner.nextLine();
-                if(this.game.move(move)) {
-                    return;
-                } else {
-                    System.out.println("Move ["+move+"] is not a legal move.");
-                }
-            }
+            // while(true) {
+            //     System.out.print("> ");
+            //     String move = scanner.nextLine();
+            //     // if(this.game.push(move)) {
+            //     //     return;
+            //     // } else {
+            //     //     System.out.println("Move ["+move+"] is not a legal move.");
+            //     // }
+            // }
         }
     }
 

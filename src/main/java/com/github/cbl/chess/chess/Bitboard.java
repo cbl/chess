@@ -3,7 +3,9 @@ package com.github.cbl.chess.chess;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BitBoard {
+public class Bitboard {
+    public static final long ALL = -1;
+    public static final long EMPTY = 0;
     public static final long WHITE_SQUARES = 0x55AA55AA55AA55AAL;
     public static final long BLACK_SQUARES = 0xAA55AA55AA55AA55L;
     public static final long ALL_SQUARES = WHITE_SQUARES | BLACK_SQUARES;
@@ -110,6 +112,7 @@ public class BitBoard {
     public static final long DIAGONAL_A1_H8 = A1 | B2 | C3 | D4 | E5 | F6 | G7 | H8;
     public static final long DIAGONAL_A8_H1 = A8 | B7 | C6 | D5 | E4 | F3 | G2 | H1;
     public static final long ROOK_SQUARES = A1 | A8 | H1 | H8;
+    public static final long OUTLINE = Bitboard.RANK_1 | Bitboard.RANK_8 | Bitboard.FILE_A | Bitboard.FILE_H;
 
     public static final long KNIGHT_MASK = B1 | A2;
 
@@ -120,7 +123,6 @@ public class BitBoard {
     public static final long[] RANKS = {
         RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8
     };
-
 
     /**
      * Make a new square from the intersection of the rank and the file.
@@ -244,8 +246,83 @@ public class BitBoard {
         return ((board >> square) & 1) == 1;
     }
 
+    public static long edges(int square)
+    {
+        return (((RANK_1 | RANK_8) & ~RANKS[Board.getRank(square)]) 
+             | ((FILE_A | FILE_H) & ~FILES[Board.getFile(square)]));
+    }
+
     /**
-     * Get list of squares from BitBoard.
+     * Traverse subsets of a set.
+     * 
+     * @see https://www.chessprogramming.org/Traversing_Subsets_of_a_Set
+     */
+    public static List<Long> subsets(long set) {
+        long subset = EMPTY;
+        List<Long> subsets = new ArrayList<Long>();
+        while(true) {
+            subsets.add(subset);
+            subset = (subset - set) & set;
+            if(subset == 0) return subsets;
+        }
+    }
+
+    /**
+     * Get sliding attacks from the given square to the given directions.
+     */
+    public static long slidingAttacks(int sq, int[] directions) {
+        return slidingAttacks(sq, directions, EMPTY);
+    }
+
+    /**
+     * Get sliding attacks from the given square to the given directions. Filter 
+     * blocked squares from the given occupation board.
+     */
+    public static long slidingAttacks(int square, int[] directions, long occupied) {
+        long attacks = EMPTY;
+
+        for(int direction : directions) {
+            int sq = square;
+
+            while(true) {
+                sq += direction;
+
+                if(!(0 <= sq && sq < 64) || Board.distance(sq, sq-direction) > 2) {
+                    break;
+                }
+
+                attacks |= Board.BB_SQUARES[sq];
+
+                if((occupied & Board.BB_SQUARES[sq]) != 0) break;
+            }
+        }
+
+        return attacks;
+    }
+
+    /**
+     * Get the "most significant bit" position form the given bitboard.
+     * 
+     * @see https://en.wikipedia.org/wiki/Bit_numbering#Most_significant_bit
+     */
+    public static int msb(long bb)
+    {
+        return Long.SIZE - Long.numberOfLeadingZeros(bb);
+    }
+
+    
+    /**
+     * Get the "least significant bit" position form the given bitboard.
+     * 
+     * @see https://en.wikipedia.org/wiki/Bit_numbering#Least_significant_bit
+     */
+    public static int lsb(long bb)
+    {
+        return Long.numberOfTrailingZeros(bb);
+    }
+
+    /**
+     * Get list of squares from Bitboard.
      */
     public static List<Long> toList(long bb)
     {
@@ -259,7 +336,7 @@ public class BitBoard {
     }
 
     /**
-     * Get reversed list of squares from BitBoard.
+     * Get reversed list of squares from Bitboard.
      */
     public static List<Long> toReversedList(long bb)
     {

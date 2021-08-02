@@ -1,28 +1,43 @@
 package com.github.cbl.chess.chess;
 
 import java.lang.Math;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
- * The AttackIndex class is an index to lookup all possible pseudo moves for any 
- * piece at any square.
+ * The BBIndex class generates various bitboard lookups.
  */
-public class AttackIndex {
+public class BBIndex {
     public static long[][] pawns = new long[3][];
     public static long[][] pseudo = new long[7][];
+    public static long[][] blockers = new long[7][];
     public static long[][] streched = new long[Board.SQUARE_COUNT][];
+    public static long[][] between = new long[Board.SQUARE_COUNT][];
     public static long[] ranks = new long[Board.SQUARE_COUNT];
     public static long[] files = new long[Board.SQUARE_COUNT];
     public static long[] diagonals = new long[Board.SQUARE_COUNT];
 
+    public static Map<Long, Long>[] BISHOP_ATTACKS = new Map[Board.SQUARE_COUNT];
+    public static Map<Long, Long>[] FILE_ATTACKS = new Map[Board.SQUARE_COUNT];
+    public static Map<Long, Long>[] RANK_ATTACKS = new Map[Board.SQUARE_COUNT];
+
+    public static long[] BISHOP_MASKS = new long[Board.SQUARE_COUNT];
+    public static long[] FILE_MASKS = new long[Board.SQUARE_COUNT];
+    public static long[] RANK_MASKS = new long[Board.SQUARE_COUNT];
+
+    protected static int[] BISHOP_ATTACK_DIRECTIONS = {Move.UP_RIGHT, Move.UP_LEFT, Move.DOWN_RIGHT, Move.DOWN_LEFT};
+    protected static int[] FILE_ATTACK_DIRECTIONS = {Move.UP, Move.DOWN};
+    protected static int[] RANK_ATTACK_DIRECTIONS = {Move.LEFT, Move.RIGHT};
+
     /**
      * Singleton pattern.
      */
-    protected static final AttackIndex instance = new AttackIndex();
+    protected static final BBIndex instance = new BBIndex();
 
     /**
      * Generate pseudo attacks.
      */
-    AttackIndex() {
+    BBIndex() {
         this.initIndexes();
 
         for(int sq=Board.A1;sq<=Board.H8;sq++) {
@@ -53,29 +68,51 @@ public class AttackIndex {
             for (int move: Move.KING_MOVES)
                 pseudo[Piece.KING][sq] |= Board.getSafeBBSquare(sq + move);
 
-            AttackIndex.files[sq] = BitBoard.FILES[Board.getFile(sq)];
-            AttackIndex.ranks[sq] = BitBoard.RANKS[Board.getRank(sq)];
-            AttackIndex.diagonals[sq] = pseudo[Piece.BISHOP][sq];
+            files[sq] = Bitboard.FILES[Board.getFile(sq)];
+            ranks[sq] = Bitboard.RANKS[Board.getRank(sq)];
+            diagonals[sq] = pseudo[Piece.BISHOP][sq];
+            blockers[Piece.BISHOP][sq] = pseudo[Piece.BISHOP][sq] & ~Bitboard.OUTLINE;
+            blockers[Piece.ROOK][sq] = pseudo[Piece.ROOK][sq] & ~Bitboard.OUTLINE;
+            blockers[Piece.QUEEN][sq] = pseudo[Piece.QUEEN][sq] & ~Bitboard.OUTLINE;
         }
 
         this.strechIndex();
+        setAttackTable(BISHOP_ATTACKS, BISHOP_MASKS, BISHOP_ATTACK_DIRECTIONS);
+        setAttackTable(RANK_ATTACKS, RANK_MASKS, RANK_ATTACK_DIRECTIONS);
+        setAttackTable(FILE_ATTACKS, FILE_MASKS, FILE_ATTACK_DIRECTIONS);
+    }
+
+    protected void setAttackTable(Map<Long, Long>[] table, long[] masks, int[] directions)
+    {
+        for(int sq=Board.A1;sq<=Board.H8;sq++) {
+            Map<Long, Long> attacks = new HashMap<>();
+            masks[sq] = Bitboard.slidingAttacks(sq, directions) & ~Bitboard.edges(sq);
+            for(long subset : Bitboard.subsets(masks[sq])) {
+                attacks.put(subset, Bitboard.slidingAttacks(sq, directions, subset));
+            }
+            table[sq] = attacks;
+        }
     }
 
     protected void strechIndex()
     {
         for(int a : Board.SQUARES) {
+            long bbA = Board.BB_SQUARES[a];
             streched[a] = new long[Board.SQUARE_COUNT];
+            between[a] = new long[Board.SQUARE_COUNT];
             
             for(int b : Board.SQUARES) {
                 long bbB = Board.BB_SQUARES[b];
 
                 if((diagonals[a] & bbB) != 0) {
-                    streched[a][b] = diagonals[a];
+                    streched[a][b] =  (diagonals[a] & diagonals[b]) | bbA | bbB;
                 } else if((ranks[a] & bbB) != 0) {
-                    streched[a][b] = ranks[a];
+                    streched[a][b] = ranks[a] | bbA;
                 } else if((files[a] & bbB) != 0) {
-                    streched[a][b] = files[a];
+                    streched[a][b] = files[a] | bbA;
                 }
+                long bb = streched[a][b] & ((Bitboard.ALL << a) ^ (Bitboard.ALL << b));
+                between[a][b] = bb & (bb - 1);
             }
         }
     }
@@ -85,6 +122,7 @@ public class AttackIndex {
             if(i==Piece.Color.WHITE || i==Piece.Color.BLACK)
                 pawns[i] = new long[Board.SQUARE_COUNT];
             pseudo[i] = new long[Board.SQUARE_COUNT];
+            blockers[i] = new long[Board.SQUARE_COUNT];
         }
     }
 

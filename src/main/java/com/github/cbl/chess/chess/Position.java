@@ -20,6 +20,7 @@ public class Position implements Cloneable {
     protected long[] piecesByType = new long[7];
     protected long[] piecesByColor = new long[3];
     protected int[] pieces = new int[Board.SQUARE_COUNT];
+    protected long[] pinned = new long[3];
 
     protected List<Position> stack = new ArrayList<Position>();
 
@@ -123,9 +124,22 @@ public class Position implements Cloneable {
         return this.piecesByType[Piece.KING] & this.piecesByColor[color];
     }
 
+    public long occupied(int color)
+    {
+        return this.piecesByColor[color];
+    }
+
     public long occupied()
     {
-        return this.piecesByColor[Piece.Color.ANY];
+        return this.piecesByType[Piece.ANY];
+    }
+
+    /**
+     * The color of the player whose turn it is not.
+     */
+    public int themColor()
+    {
+        return Piece.Color.opposite(this.sideToMove);
     }
 
     public long piecesByColorAndType(int color, int type) {
@@ -136,16 +150,262 @@ public class Position implements Cloneable {
         this.addPiece(square, Piece.getType(piece), Piece.getColor(piece));
     }
 
-    public long legalMoves(int square) {
-        return MoveGenerator.legalMoves(this, square);
+    /**
+     * Determines out if a move does not put the king at the given square in 
+     * check.
+     */
+    protected boolean isSafe(int kingSquare, Move move)
+    {
+        if(move.from == kingSquare) {
+            return !this.isAttackedBy(this.themColor(), move.to);
+        }
+
+        // TODO: EP Skewered
+        
+        return (this.pinned[this.sideToMove] & Board.BB_SQUARES[move.from]) == 0 
+            || (BBIndex.streched[move.from][move.to] & Board.BB_SQUARES[kingSquare]) != 0;
     }
 
-    public long legalMoves(long square) {
-        return this.legalMoves(Board.fromBBSquare(square));
+    /**
+     * Determines if a pseudo-legal move is a castling move.
+     */
+    public boolean isCastling(Move move)
+    {
+        if(this.pieceTypeAt(move.from) != Piece.KING) {
+            return false;
+        }
+
+        return Math.abs(move.from - move.to) == 2;
     }
 
-    public long pseudoLegalMoves(int square) {
-        return MoveGenerator.pseudoLegalMoves(this, square);
+    /**
+     * Determines whether the given square is attacked by the given color.
+     */
+    public boolean isAttackedBy(int color, int square)
+    {
+        return this.attackers(color, square) != 0;
+    }
+
+    /**
+     * Gets bitboard containing blockers for sliding pieces of the opponent.
+     * 
+     * A piece is a blocker when:
+     * - it is between the king and an opponents sliding piece.
+     * - it is the only piece between the king and the opponents sliding piece.
+     */
+    protected long sliderBlockers(int color)
+    {
+        int themColor = Piece.Color.opposite(color);
+        int kingSquare = Board.fromBB(this.king(color));
+        long rooksAndQueens = this.rooks() | this.queens();
+        long bishopsAndQueens = this.bishops() | this.queens();
+
+        // All opponent's sliding pieces.
+        long slidingPieces = (
+            (BBIndex.RANK_ATTACKS[kingSquare].get(Bitboard.EMPTY) & rooksAndQueens) |
+            (BBIndex.FILE_ATTACKS[kingSquare].get(Bitboard.EMPTY) & rooksAndQueens) |
+            (BBIndex.BISHOP_ATTACKS[kingSquare].get(Bitboard.EMPTY) & bishopsAndQueens)
+        ) & this.occupied(themColor);
+
+        long blockers = 0;
+
+        for(int slidingPiece : Board.toReversedList(slidingPieces)) {
+            long attack = BBIndex.between[kingSquare][slidingPiece] & this.occupied();
+
+            // Add to blockers when exactly one peace is between the sliding piece 
+            // and the king.
+            if(attack != 0 && Board.BB_SQUARES[Bitboard.lsb(attack)] == attack)
+                blockers |= attack;
+        }
+
+        return blockers & this.occupied(color);
+    }
+
+    protected void setCheckInfo()
+    {
+        this.pinned[Piece.Color.WHITE] = this.sliderBlockers(Piece.Color.WHITE);
+        this.pinned[Piece.Color.BLACK] = this.sliderBlockers(Piece.Color.BLACK);
+    }
+
+    /**
+     * Generate all legal moves.
+     */
+    public MoveList generateLegalMoves(long fromMask) {
+        return this.generateLegalMoves(fromMask, Bitboard.ALL);
+    }
+
+    /**
+     * Generate all legal moves.
+     */
+    public MoveList generateLegalMoves(long fromMask, long toMask) {
+        MoveList moveList = new MoveList();
+        long bbKing = this.king(this.sideToMove);
+        int king = Board.fromBB(bbKing);
+        long checkers = this.attackers(this.themColor(), king);
+
+        MoveList pseudoLegal = checkers == 0
+            ? this.generatePseudoLegalMoves(fromMask, toMask)
+            : this.generateEvasions(bbKing, checkers, fromMask, toMask);
+        
+        for(Move move : pseudoLegal)
+            if(this.isSafe(king, move)) moveList.add(move);
+    
+        return moveList;
+    }
+
+    /**
+     * Generate all Pseudo-Legal moves.
+     * 
+     * > A Pseudo-Legal Move is legal in the sense that it is consistent with 
+     * > the current board representation it is assigned to, and it must be 
+     * > member of all pseudo legal generated moves for that position and side 
+     * > to move ...
+     * @see https://www.chessprogramming.org/Pseudo-Legal_Move
+     */
+    public MoveList generatePseudoLegalMoves(long fromMask) {
+        return this.generatePseudoLegalMoves(fromMask, Bitboard.ALL);
+    }
+
+    /**
+     * Generate all Pseudo-Legal moves.
+     * 
+     * > A Pseudo-Legal Move is legal in the sense that it is consistent with 
+     * > the current board representation it is assigned to, and it must be 
+     * > member of all pseudo legal generated moves for that position and side 
+     * > to move ...
+     * @see https://www.chessprogramming.org/Pseudo-Legal_Move
+     */
+    public MoveList generatePseudoLegalMoves(long fromMask, long toMask) {
+        MoveList moveList = new MoveList();
+        long ourPieces = this.occupied(this.sideToMove);
+
+        // Generate moves for pieces that are not pawns.
+        long nonPawns = ourPieces & fromMask & ~this.pawns() ;
+        for(int from : Board.toReversedList(nonPawns)) {
+            long moves = this.attacks(from) & ~ourPieces & toMask;
+            System.out.println("moves:::");
+            System.out.println(Bitboard.toAscii(moves));
+            for(int to : Board.toReversedList(moves)) 
+                moveList.add(new Move(from, to));
+        }
+
+        // Generate castling moves.
+        moveList.addAll(this.generatePseudoLegalCastlingMoves(fromMask, toMask));
+
+        long pawns = this.pawns(this.sideToMove) & fromMask;
+
+        if(pawns == 0) {
+            return moveList;
+        }
+
+        // Generate pawn captures.
+        for(int from : Board.toReversedList(pawns)) {
+            long attacks = (
+                this.attacks(from) & 
+                this.occupied(this.themColor()) &
+                toMask
+            );
+
+            for(int to : Board.toReversedList(attacks))  {
+                int rank = Board.getRank(to);
+                if(rank == Board.RANK_1 || rank == Board.RANK_8) {
+                    moveList.add(new Move(from, to, Piece.QUEEN));
+                    moveList.add(new Move(from, to, Piece.ROOK));
+                    moveList.add(new Move(from, to, Piece.BISHOP));
+                    moveList.add(new Move(from, to, Piece.KNIGHT));
+                } else {
+                    moveList.add(new Move(from, to));
+                }
+            }   
+        }
+
+        // Generate pawn moves.
+        long singleMoves = 0;
+        long doubleMoves = 0;
+        if(this.sideToMove == Piece.Color.WHITE) {
+            singleMoves = pawns << 8 & ~this.occupied();
+            doubleMoves = singleMoves << 8 & ~this.occupied() & (Bitboard.RANK_3 | Bitboard.RANK_4);
+        } else {
+            singleMoves = pawns >> 8 & ~this.occupied();
+            doubleMoves = singleMoves >>8 & ~this.occupied() & (Bitboard.RANK_6 | Bitboard.RANK_5);
+        }
+
+        singleMoves &= toMask;
+        doubleMoves &= toMask;
+
+        // Generate single pawn moves.
+        for(int to : Board.toReversedList(singleMoves)) {
+            int from = to - Move.pawn(this.sideToMove);
+            int rank = Board.getRank(to);
+            if(rank == Board.RANK_1 || rank == Board.RANK_8) {
+                moveList.add(new Move(from, to, Piece.QUEEN));
+                moveList.add(new Move(from, to, Piece.ROOK));
+                moveList.add(new Move(from, to, Piece.BISHOP));
+                moveList.add(new Move(from, to, Piece.KNIGHT));
+            } else {
+                moveList.add(new Move(from, to));
+            }
+        }
+
+        // Generate double pawn moves.
+        for(int to : Board.toReversedList(doubleMoves)) {
+            int from = to - Move.pawn(this.sideToMove) * 2;
+            moveList.add(new Move(from, to));
+        }
+
+        moveList.addAll(this.generatePesudoLegalEnPassant(fromMask));
+
+        return moveList;
+    }
+
+    public MoveList generatePesudoLegalEnPassant(long fromMask)
+    {
+        MoveList moveList = new MoveList();
+
+        if((this.epSquare & this.occupied()) == 0) return moveList;
+
+        int rank = this.sideToMove == Piece.Color.WHITE ? Board.RANK_3 : Board.RANK_4;
+        int epSquare = Board.fromBB(this.epSquare);
+        long capturers = (
+            this.pawns(this.sideToMove) & fromMask &
+            BBIndex.pawns[this.themColor()][epSquare] &
+            BBIndex.ranks[rank]
+        );
+
+        for(int capturer : Board.toReversedList(capturers))
+            moveList.add(new Move(capturer, epSquare));
+
+        return moveList;
+    }
+
+    /**
+     * Generate castling moves for all kings whose position match with the 
+     * given bit mask.
+     */
+    public MoveList generatePseudoLegalCastlingMoves(long fromMask, long toMask)
+    {
+        MoveList moveList = new MoveList();
+        long bbKing = this.king(this.sideToMove) & fromMask;
+
+        if(bbKing == 0) return moveList;
+
+        int kingSquare = Board.fromBB(bbKing);
+        int kingRank = Board.getRank(kingSquare);
+        int leftRookSquare = Board.fromBB(Bitboard.FILE_A & Bitboard.RANKS[kingRank]);
+        int rightRookSquare = Board.fromBB(Bitboard.FILE_H & Bitboard.RANKS[kingRank]);
+        long ourPieces = this.occupied(this.sideToMove) & ~this.king(this.sideToMove);
+        long castlingRights = this.castlingRightsFor(this.sideToMove);
+        long castleRight = Bitboard.shiftRight(bbKing, 2) & toMask;
+        long castleLeft = Bitboard.shiftLeft(bbKing, 2) & toMask;
+        long blockersRight = BBIndex.between[kingSquare][rightRookSquare] & ourPieces;
+        long blockersLeft = BBIndex.between[kingSquare][leftRookSquare] & ourPieces;
+
+        if((castleLeft & castlingRights) != 0 && castleLeft != 0 && blockersRight == 0)
+            moveList.add(new Move(kingSquare, Board.fromBB(castleLeft)));
+        if((castleRight & castlingRights) != 0 && castleRight != 0  && blockersLeft == 0)
+            moveList.add(new Move(kingSquare, Board.fromBB(castleRight)));
+
+        return moveList;
     }
 
     public boolean isLegal(int from, int to) {
@@ -154,8 +414,7 @@ public class Position implements Cloneable {
             return false;
         }
 
-        long bbTo = Board.BB_SQUARES[to];
-        return (this.legalMoves(from) & bbTo) != 0;
+        return this.generateLegalMoves(Board.BB_SQUARES[from]).exists(from, to);
     }
 
     public int pieceAt(int square) {
@@ -164,6 +423,10 @@ public class Position implements Cloneable {
 
     public int pieceTypeAt(int square) {
         return Piece.getType(this.pieces[square]);
+    }
+
+    public int pieceColorAt(int square) {
+        return Piece.getColor(this.pieces[square]);
     }
 
     public Move moveAt(int index) {
@@ -181,8 +444,8 @@ public class Position implements Cloneable {
     public boolean isIntoCheck(Move move) {
         long king = this.king(this.sideToMove);
 
-        long checkers = this.attackers(Piece.Color.opposite(this.sideToMove), Board.fromBBSquare(king));
-        List<Move> evasions = this.generateEvasions(king, checkers, Board.BB_SQUARES[move.from], Board.BB_SQUARES[move.to]);
+        long checkers = this.attackers(Piece.Color.opposite(this.sideToMove), Board.fromBB(king));
+        // MoveList evasions = this.generateEvasions(king, checkers, Board.BB_SQUARES[move.from], Board.BB_SQUARES[move.to]);
         // if(checked != 0) {
         //     return true;
         // }
@@ -190,47 +453,120 @@ public class Position implements Cloneable {
         return false;
     }
 
-    protected List<Move> generateEvasions(long king, long checkers, long from, long to) {
+    protected MoveList generateEvasions(long king, long checkers, long fromMask, long toMask) {
         long sliders = checkers & (this.bishops() | this.rooks() | this.queens());
-        List<Move> evasions = new ArrayList<Move>();
+        MoveList evasions = new MoveList();
         long attacked = 0;
-        int kingSq = Board.fromBBSquare(king);
+        int kingSquare = Board.fromBB(king);
         
-        for(long checker : BitBoard.toList(checkers)) {
-            attacked |= AttackIndex.streched[kingSq][Board.fromBBSquare(checker)] & ~checker;
+        for(int checker : Board.toList(checkers)) {
+            attacked |= BBIndex.streched[kingSquare][checker] & ~Board.BB_SQUARES[checker];
         }
 
-        if((king & from) != 0) {
-            for(long toSq : BitBoard.toReversedList(AttackIndex.pseudo[Piece.KING][kingSq])) {
-                evasions.add(new Move(kingSq, Board.fromBBSquare(toSq)));
+        // Generate king eveasions.
+        if((king & fromMask) != 0) {
+            for(int to : Board.toReversedList(BBIndex.pseudo[Piece.KING][kingSquare] & ~this.occupied(this.sideToMove))) {
+                evasions.add(new Move(kingSquare, to));
             }
+
+            // TODO: capture the checking pawn with an en passant move.
+        }
+
+        // Moves to block check are generated when only one opponent piece is 
+        // giving check.
+        int checker = Bitboard.lsb(checkers);
+        if(Board.BB_SQUARES[checker] == checkers) {
+            long target = BBIndex.between[kingSquare][checker] | checkers;
+
+            System.out.println(Bitboard.toAscii(target & toMask));
+
+            // Moves that capture the checker:
+            evasions.addAll(this.generatePseudoLegalMoves(fromMask, target & toMask));
         }
 
         return evasions;
     }
 
     public long attackers(int color, int square) {
-        long occupied = this.occupied();
-        long rankPieces = AttackIndex.ranks[square] & occupied;
-        long filePieces = AttackIndex.files[square] & occupied;
-        long diagonalPieces = AttackIndex.diagonals[square] & occupied;
-
+        long diagPieces = BBIndex.BISHOP_MASKS[square] & this.occupied();
+        long filePieces = BBIndex.FILE_MASKS[square] & this.occupied();
+        long rankPieces = BBIndex.RANK_MASKS[square] & this.occupied();
         long queensAndRooks = this.queens() | this.rooks();
         long queensAndBishops = this.queens() | this.bishops();
 
         long attackers = (
-            (AttackIndex.pseudo[Piece.KING][square] & this.kings()) |
-            (AttackIndex.pseudo[Piece.KNIGHT][square] & this.knights()) |
-            (AttackIndex.pseudo[Piece.ROOK][square] & queensAndRooks) |
-            (AttackIndex.pseudo[Piece.BISHOP][square] & queensAndBishops) |
-            (AttackIndex.pawns[Piece.Color.opposite(color)][square] & this.pawns()));
+            (BBIndex.pseudo[Piece.KING][square] & this.kings()) |
+            (BBIndex.pseudo[Piece.KNIGHT][square] & this.knights()) |
+            (BBIndex.BISHOP_ATTACKS[square].get(diagPieces) & queensAndBishops) |
+            (BBIndex.FILE_ATTACKS[square].get(filePieces) & queensAndRooks) |
+            (BBIndex.RANK_ATTACKS[square].get(rankPieces) & queensAndRooks) |
+            (BBIndex.pawns[Piece.Color.opposite(color)][square] & this.pawns()));
 
         return attackers & this.piecesByColor[color];
     }
 
+    public long attacks(int square)
+    {
+        int piece = this.pieceAt(square);
+
+        if(piece == Piece.NONE) return 0;
+
+        int pieceType = Piece.getType(piece);
+
+        if(pieceType == Piece.PAWN) {
+            return BBIndex.pawns[Piece.getColor(piece)][square];
+        }
+
+        if(pieceType == Piece.KNIGHT || pieceType == Piece.KING) {
+            return BBIndex.pseudo[pieceType][square];
+        }
+
+        long attacks = 0;
+        
+        if(pieceType != Piece.ROOK) {
+            long diagPieces = BBIndex.BISHOP_MASKS[square] & this.occupied();
+            attacks |= BBIndex.BISHOP_ATTACKS[square].get(diagPieces);
+        }
+        if(pieceType != Piece.BISHOP) {
+            long filePieces = BBIndex.FILE_MASKS[square] & this.occupied();
+            long rankPieces = BBIndex.RANK_MASKS[square] & this.occupied();
+            attacks |= BBIndex.FILE_ATTACKS[square].get(filePieces);
+            attacks |= BBIndex.RANK_ATTACKS[square].get(rankPieces);
+        }
+
+        return attacks;
+    }
+
+    protected long filterBlocked(long attackMask, int from, int move) {
+        long attacks = 0;
+        int match = 0, piece;
+        boolean[] blocked = new boolean[4];
+        for(int sq = from+move;sq<=Board.H8&&sq>=Board.A1;sq+=move) {
+            if(!Bitboard.valueAt(attackMask, sq)) continue;
+            match = (sq-from)%8 == 0 ? 0 
+                : (sq-from)%9 == 0 ? 1 
+                : sq/8 == from/8 ? 3 
+                : (sq-from)%7 == 0 ? 2 
+                : -1;
+
+            if(match == -1) continue;
+            if(blocked[match]) continue;
+
+            attacks |= attackMask & Board.BB_SQUARES[sq];
+
+            // Block direction if a piece is on the square.
+            if(match != -1 && (piece = pieceAt(sq)) != 0) {
+                blocked[match] = true;
+                if(Piece.isType(piece, Piece.PAWN) && match == 0)
+                    attacks &= ~Board.BB_SQUARES[sq];
+            }
+        }
+
+        return attacks;
+    }
+
     public void push(Move move) {
         long fromBB = Board.BB_SQUARES[move.from];
-        long toBB = Board.BB_SQUARES[move.to];
         int toFile = Board.getFile(move.to);
         int fromFile = Board.getFile(move.from);
         int fromRank = Board.getRank(move.from);
@@ -263,13 +599,13 @@ public class Position implements Cloneable {
 
         // Clear castling rights after king move.
         if(pieceType == Piece.KING) {
-            this.castlingRights &= this.sideToMove == Piece.Color.WHITE ? BitBoard.BLACK_SIDE : BitBoard.WHITE_SIDE;
+            this.castlingRights &= this.sideToMove == Piece.Color.WHITE ? Bitboard.BLACK_SIDE : Bitboard.WHITE_SIDE;
         }
 
         // Clear castling rights after rook moved from original square.
-        if(pieceType == Piece.ROOK && (fromBB & BitBoard.ROOK_SQUARES) != 0) {
-            this.castlingRights &= ~((this.sideToMove == Piece.Color.WHITE ? BitBoard.WHITE_SIDE : BitBoard.BLACK_SIDE)
-                & (fromFile == Board.FILE_A ? BitBoard.QUEEN_SIDE : BitBoard.KING_SIDE));
+        if(pieceType == Piece.ROOK && (fromBB & Bitboard.ROOK_SQUARES) != 0) {
+            this.castlingRights &= ~((this.sideToMove == Piece.Color.WHITE ? Bitboard.WHITE_SIDE : Bitboard.BLACK_SIDE)
+                & (fromFile == Board.FILE_A ? Bitboard.QUEEN_SIDE : Bitboard.KING_SIDE));
         }
 
         // Clear square above pawn when en passant move was made.
@@ -290,10 +626,17 @@ public class Position implements Cloneable {
             this.stack.add(this.clone());
         } catch(CloneNotSupportedException e) {}
 
+        // Cache check info.
+        this.setCheckInfo();
+
         // Swap side to move.
         this.sideToMove = Piece.Color.opposite(this.sideToMove);
+        
     }
 
+    /**
+     * Restores the previous position and returns the last executed move.
+     */
     public Move pop()
     {
         // Cannot pop when no move has been made so far.
@@ -306,6 +649,9 @@ public class Position implements Cloneable {
         return move;
     }
 
+    /**
+     * Gets the last executed move.
+     */
     public Move peek()
     {
         return this.moveIndex > 0 ? this.moves[this.moveIndex-1] : null;
@@ -345,11 +691,11 @@ public class Position implements Cloneable {
         if(rookSquare == Board.SQUARE_NONE) return;
 
         long ranks = color == Piece.Color.WHITE 
-            ? BitBoard.WHITE_SIDE 
-            : BitBoard.BLACK_SIDE;
+            ? Bitboard.WHITE_SIDE 
+            : Bitboard.BLACK_SIDE;
         long side = Board.FILE_E < Board.getFile(rookSquare) 
-            ? BitBoard.KING_SIDE
-            : BitBoard.QUEEN_SIDE;
+            ? Bitboard.KING_SIDE
+            : Bitboard.QUEEN_SIDE;
 
         castlingRights |= ranks & side;
     }
@@ -357,8 +703,8 @@ public class Position implements Cloneable {
     public long castlingRightsFor(int color) {
         return this.castlingRights
             & (color == Piece.Color.WHITE
-            ? BitBoard.WHITE_SIDE 
-            : BitBoard.BLACK_SIDE);
+            ? Bitboard.WHITE_SIDE 
+            : Bitboard.BLACK_SIDE);
     }
 
     public void setEnPassantSquare(int square) {
@@ -370,7 +716,7 @@ public class Position implements Cloneable {
     }
 
     /**
-     * Get the ASCII representation of the position.
+     * Gets the ASCII representation of the position.
      */
     public String toAscii(long colored) {
         String ascii = "    A B C D E F G H\n";

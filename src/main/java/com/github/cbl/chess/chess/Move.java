@@ -1,18 +1,5 @@
 package com.github.cbl.chess.chess;
 
-/**
- * The Move class stores and interprets information about a move in a range of 
- * 19 bits.
- * 
- * bits 1-6:   to    - The square where the piece was moved to (0-63)
- * bits 7-12:  from  - The square where the piece was moved from (0-63)
- * bits 13-17: piece - Information about the piece (type and color)
- * bits 17-19: type  - The type of the move (normal, promotion, en passant, castling)
- * 
- * e.g.: 
- * white pawn was moved from A2(8) -> A3(16)
- * 00 01001 001000 010000
- */
 public class Move {
     public static final int UP = 8;
     public static final int DOWN = -UP;
@@ -40,66 +27,38 @@ public class Move {
 
     public static final int MAX_MOVES_COUNT = 256;
 
-    public static class Block {
-        public static final int TO = Board.Block.SQUARE;
-        public static final int FROM = Board.Block.SQUARE << Board.Block.SQUARE_SIZE;
-        public static final int PIECE_TYPE = Piece.Block.TYPE << Board.Block.SQUARE_SIZE * 2;
-        public static final int COLOR = Piece.Block.COLOR << Board.Block.SQUARE_SIZE * 2 + Piece.Block.TYPE_SIZE;
-        public static final int PIECE = (Piece.Block.TYPE | Piece.Block.COLOR) << Board.Block.SQUARE_SIZE * 2;
-        public static final int TYPE = 0b11 << Board.Block.SQUARE_SIZE * 2 + Piece.Block.TYPE_SIZE + Piece.Block.COLOR_SIZE;
-    }
-
-    public static class Type {
-        public static final int NORMAL = 0;
-        public static final int PROMOTION = 1 << 17;
-        public static final int EN_PASSANT = 2 << 17;
-        public static final int CASTLING = 3 << 17;
-    }
-
-    public static int make(int type, int piece, int from, int to) {
-        return (piece 
-            << Board.Block.SQUARE_SIZE | from) 
-            << Board.Block.SQUARE_SIZE | to
-            | type;
-    }
-
     public static int pawn(int color) {
         return color == Piece.Color.WHITE ? UP : DOWN;
-    }
-
-    public static int getPiece(int move) {
-        return move >> Board.Block.SQUARE_SIZE * 2 & 0b111;
-    }
-
-    public static int getToSquare(int move) {
-        return move & 63;
-    }
-
-    public static int getFromSquare(int move) {
-        return move >> 6 & 63;
-    }
-
-    public static boolean isPromotion(int move) {
-        return 
-            Piece.isType(move, Piece.PAWN) &&
-            Piece.isColor(getPiece(move), Piece.Color.WHITE) 
-                ? Board.isRank(getToSquare(move), Board.RANK_1)
-                : Board.isRank(getToSquare(move), Board.RANK_8);
     }
 
     public int from;
     public int to;
     public int promotion;
 
+    /**
+     * Create new Move instance.
+     */
     public Move(int from, int to)
     {
         this.from = from;
         this.to = to;
+        this.promotion = 0;
+    }
+
+    /**
+     * Create new Move instance.
+     */
+    public Move(int from, int to, int promotion)
+    {
+        this.from = from;
+        this.to = to;
+        this.promotion = promotion;
     }
 
     /**
      * Determines if the given move is a capture or a pawn move.
      * 
+     * This is used to find out if a draw can be claimed under the 50 move rule:
      * > The fifty-move rule in chess states that a player can claim a draw if 
      * > no capture has been made and no pawn has been moved in the last fifty 
      * > moves.

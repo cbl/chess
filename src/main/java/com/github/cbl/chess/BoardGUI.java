@@ -13,9 +13,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
-import com.github.cbl.chess.chess.BitBoard;
+import com.github.cbl.chess.chess.Bitboard;
+import com.github.cbl.chess.chess.MoveList;
+import com.github.cbl.chess.chess.Move;
 import com.github.cbl.chess.chess.Board;
-import com.github.cbl.chess.chess.AttackIndex;
+import com.github.cbl.chess.chess.BBIndex;
 import com.github.cbl.chess.chess.Position;
 import com.github.cbl.chess.console.CLI;
 import com.github.cbl.chess.chess.Piece;
@@ -69,6 +71,7 @@ public class BoardGUI extends JFrame implements ActionListener {
     private static Notation fen = new FenNotation();
     Position position;
     GameOfChess game;
+    protected MoveList moves = new MoveList();
 
 
     JButton[] board = new JButton[Board.SQUARE_COUNT];
@@ -283,24 +286,28 @@ public class BoardGUI extends JFrame implements ActionListener {
     }
 
     protected void selectedSquare(int square) {
-        long moves = 0;
-        int piece = this.position.pieceAt(square);
-
-        if(this.selectedSquare != Board.SQUARE_NONE) {
-            if(this.game.move(this.selectedSquare, square)) {
-                this.selectedSquare = Board.SQUARE_NONE;
-                this.clearHighlights();
-                return;
+        if(this.moves.size() > 0) {
+            Move move;
+            System.out.println("===");
+            System.out.println(this.selectedSquare+"->"+square);
+            for(Move m : this.moves){
+                System.out.println(m.from+"->"+m.to);
             }
+            if((move = this.moves.get(this.selectedSquare, square)) != null) {
+                
+                this.game.push(move);
+            }
+            this.moves = new MoveList();
+            this.clearHighlights();
+            return;
         }
 
+        System.out.println(square);
+
+        this.moves = this.position.generateLegalMoves(Board.BB_SQUARES[square]);
         this.selectedSquare = square;
-        System.out.println(this.position.sideToMove);
-        if(Piece.isColor(piece, this.position.sideToMove)) {
-            moves = this.position.legalMoves(square);
-        }
         for(int sq=Board.A1;sq<=Board.H8;sq++) {
-            if(BitBoard.valueAt(moves, sq)) {
+            if(Bitboard.valueAt(this.moves.getToMask(), sq)) {
                 this.board[sq].setBackground(new Color(240, 110, 110));
             } else if(sq == square) {
                 this.board[sq].setBackground(new Color(100, 145, 170));
@@ -308,9 +315,6 @@ public class BoardGUI extends JFrame implements ActionListener {
                 this.board[sq].setBackground(squareBg(sq));
             }
         }
-        
-        // game.state().addObserver(new GameObserver(game, pos));
-        // game.start();
     }
 
     protected void clearHighlights() {

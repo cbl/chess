@@ -132,6 +132,17 @@ public class Board {
     }
 
     /**
+     * Get distance between two squares.
+     */
+    public static int distance(int a, int b)
+    {
+        return Math.max(
+            Math.abs(getFile(a) - getFile(b)), 
+            Math.abs(getRank(a) - getRank(b))
+        );
+    }
+
+    /**
      * Determine whether the given square is on board.
      */
     public static boolean isOnBoard(int square) {
@@ -188,18 +199,46 @@ public class Board {
     }
 
     /**
-     * Convert board BitBoard square to square.
+     * Convert board Bitboard square to square.
      */
-    public static int fromBBSquare(long square) {
+    public static int fromBB(long square) {
         return Long.numberOfTrailingZeros(square);
     }
 
     /**
-     * Get BitBoard square if the given square is on the board, otherwise 
+     * Get Bitboard square if the given square is on the board, otherwise 
      * return 0.
      */
     public static long getSafeBBSquare(int square) {
 
         return isOnBoard(square) ? BB_SQUARES[square] : 0;
+    }
+
+    /**
+     * Get list of squares from Bitboard.
+     */
+    public static List<Integer> toList(long bb)
+    {
+        List<Integer> squares = new ArrayList<Integer>();
+
+        for(int sq=Board.A1;sq<=Board.H8;sq++) {
+            if(Bitboard.valueAt(bb, sq)) squares.add(sq);
+        }
+
+        return squares;
+    }
+
+    /**
+     * Get reversed list of squares from Bitboard.
+     */
+    public static List<Integer> toReversedList(long bb)
+    {
+        List<Integer> squares = new ArrayList<Integer>();
+
+        for(int sq=Board.H8;sq>=Board.A1;sq--) {
+            if(Bitboard.valueAt(bb, sq)) squares.add(sq);
+        }
+
+        return squares;
     }
 }
