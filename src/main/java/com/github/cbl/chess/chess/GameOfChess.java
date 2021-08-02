@@ -1,6 +1,7 @@
 package com.github.cbl.chess.chess;
 
 import com.github.cbl.chess.util.StateMachine;
+import com.github.cbl.chess.util.Observer;
 import com.github.cbl.chess.notations.AlgebraicNotation;
 
 public class GameOfChess
@@ -15,8 +16,19 @@ public class GameOfChess
         Start, Move, Resign, TimeExpired, Cancel
     }
 
+    private class StateObserver extends Observer
+    {
+        public void handle(Object event, Object value)
+        {
+            if(event == StateMachine.Event.Transition) {
+                System.out.println("LOLOL");
+            }
+        }
+    }
+
     private StateMachine state = new StateMachine(State.Pending);
     private Position position;
+    public MoveList moves;
 
     public GameOfChess(Position pos) {
         this.position = pos;
@@ -27,6 +39,8 @@ public class GameOfChess
         this.state.allow(Transition.Resign, State.Thinking, State.Over);
         this.state.allow(Transition.TimeExpired, State.Thinking, State.Over);
         this.state.allow(Transition.Cancel, State.Waiting, State.Over);
+
+        this.state.addObserver(new StateObserver());        
     }
 
     public boolean start() {
@@ -44,7 +58,6 @@ public class GameOfChess
     public boolean push(Move move) {
         this.position.push(move);
         this.state.transition(Transition.Move);
-        System.out.println(move.from+"->"+move.to);
         return true;
     }
 }
