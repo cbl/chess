@@ -1,4 +1,4 @@
-package com.github.cbl.chess;
+package com.github.cbl.chess.ui;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -32,13 +32,13 @@ import com.github.cbl.chess.util.Observer;
 import com.github.cbl.chess.chess.Board;
 
 
-public class BoardGUI extends JFrame implements ActionListener {
+public class BoardUi extends JFrame implements ActionListener {
     int tileSize = 75;
     String getWinnder;
 	JButton newGame;
 	JButton resign;
 	JButton back;
-	JButton foward;
+	JButton forward;
 	JButton loadGame;
 	JButton saveGame;
     JButton saveGameDuringGame;
@@ -46,6 +46,16 @@ public class BoardGUI extends JFrame implements ActionListener {
 	JButton savealg;
 	JButton loadpgm;
 	JButton loadalg;
+    JButton[] gameButtons = {
+        resign, back, forward, saveGame, saveGameDuringGame, savepgm, savealg
+    };
+    JButton[] initialGameButtons = {
+        resign, saveGame
+    };
+    JButton[] beforeGameButtons = {
+        newGame, loadGame
+    };
+
     JFrame frame = new JFrame();
 	JTextArea gamelog;
     int selectedSquare = Board.SQUARE_NONE;
@@ -54,7 +64,6 @@ public class BoardGUI extends JFrame implements ActionListener {
 
     private static Notation fen = new FenNotation();
 	private static Notation alg = new AlgebraicNotation();
-    Position position;
     GameOfChess game;
     MoveList moves = new MoveList();
 	JButton[] board = new JButton[Board.SQUARE_COUNT];
@@ -62,33 +71,73 @@ public class BoardGUI extends JFrame implements ActionListener {
     private static final String pieceToChar = " ♙♘♗♖♕♔  ♟♞♝♜♛♚ ";
 
     private class GameObserver extends Observer {
-        public void handle(Object event, Object value) {
-            if((StateMachine.Event) event == StateMachine.Event.Transition) {
-                for(int sq = Board.A1;sq <= Board.H8;sq++) {
-                    int piece = BoardGUI.this.position.pieceAt(sq);
-                    String p = String.valueOf(pieceToChar.charAt(piece));
-					BoardGUI.this.board[sq].setText(p);
-					BoardGUI.this.board[sq].setFont(new Font("Mx Boli", Font.PLAIN, 45));
-                    BoardGUI.this.board[sq].setForeground(Piece.isColor(piece, Piece.Color.WHITE) ? Color.WHITE : Color.BLACK);
-                }
-                return;
-            } else if((StateMachine.Event) event != StateMachine.Event.TransitionedTo) {
-                return;
-            }
+        public void handle(Object e, Object v) {
+            StateMachine.Event event = (StateMachine.Event) e;
 
-            if((GameOfChess.State) value == GameOfChess.State.Waiting 
-                || (GameOfChess.State) value == GameOfChess.State.Thinking) {
-                System.out.println(
-                    (BoardGUI.this.position.sideToMove == Piece.Color.WHITE ? "White" : "Black")
-                    + " to move:"
-                );
+            if(event == StateMachine.Event.Transition) {
+                handleTransition((GameOfChess.Transition) v);
+            } else if(event == StateMachine.Event.TransitionedFrom) {
+                handleTransitionedFrom((GameOfChess.State) v);
+            } else if(event == StateMachine.Event.TransitionedTo) {
+                handleTransitionedTo((GameOfChess.State) v);
+            }
+        }
+
+        void handleTransition(GameOfChess.Transition transition) {
+            BoardUi.this.renderBoardState();
+
+            if(transition == GameOfChess.Transition.Start) {
+                handleStartTransition();
+            } else if(transition == GameOfChess.Transition.Resign) {
+                handleResignTransition();
+            }
+        }
+
+        void handleTransitionedFrom(GameOfChess.State state) {
+
+        }
+
+        void handleTransitionedTo(GameOfChess.State state) {
+            if(state == GameOfChess.State.Over) {
+                handleOverState();
+            }
+        }
+
+        void handleResignTransition()
+        {
+            String color = Piece.Color.toString(BoardUi.this.game.position.sideToMove);
+            BoardUi.this.log(color+" resigned the game.");
+        }
+
+        void handleStartTransition()
+        {
+            for(JButton button : beforeGameButtons)
+                if(button != null) BoardUi.this.frame.remove(button);
+            for(JButton button : initialGameButtons)
+                if(button != null) BoardUi.this.frame.add(button);
+            BoardUi.this.frame.revalidate(); 
+            BoardUi.this.frame.repaint();
+        }
+
+        void handleOverState()
+        {
+            for(JButton button : gameButtons)
+                if(button != null) BoardUi.this.frame.remove(button);
+            for(JButton button : beforeGameButtons)
+                if(button != null) BoardUi.this.frame.add(button);
+            BoardUi.this.frame.revalidate(); 
+            BoardUi.this.frame.repaint();
+            
+            GameOfChess.Outcome outcome = BoardUi.this.game.outcome();
+            if(outcome.winner != Piece.Color.NONE) {
+                String color = Piece.Color.toString(outcome.winner);
+                BoardUi.this.log(color+" won the game! ("+outcome.termination.name()+")");
             }
         }
     }
 	
-	public BoardGUI(/*GameData d*/)
+	public BoardUi()
 	{
-//		data = d;
 		//Buttons
 		newGame = new JButton();
 		newGame.setBounds(tileSize*9, 25, 4*tileSize, tileSize);
@@ -279,7 +328,7 @@ public class BoardGUI extends JFrame implements ActionListener {
 		frame.add(xCoordinatesPanel);
 
 		newGame.addActionListener(e -> newGame(frame));
-		resign.addActionListener(e -> resign(frame));		//Add outlay of winner before starting new game
+		resign.addActionListener(e -> game.resign());
 		saveGame.addActionListener(e -> save(frame));
 		loadGame.addActionListener(e -> load(frame));
         saveGameDuringGame.addActionListener(e -> saveDuringGame(frame));
@@ -288,45 +337,30 @@ public class BoardGUI extends JFrame implements ActionListener {
 	}
 
     protected void newGame(JFrame frame) {
-        this.position = fen.parse(
+        Position position = fen.parse(
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
-//			"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
-//			"rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
-
+            // "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+            // "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
             // "8/8/8/8/8/8/6b1/8 w KQkq - 1 6"
         );
-		frame.remove(loadalg);
-		frame.remove(loadpgm);
-		frame.remove(savealg);
-		frame.remove(savepgm);
-        frame.remove(resign);
-		frame.remove(saveGameDuringGame);
-        frame.add(newGame);
-		frame.add(saveGame);
-		frame.add(loadGame);
-        gamelog.setText("");
-		frame.revalidate(); 
-		frame.repaint();
-        this.game = new GameOfChess(this.position);
+		
+        
+		
+        this.game = new GameOfChess(position);
         this.game.state().addObserver(new GameObserver());
         this.game.start();
     }
 
-	protected void resign(JFrame frame)
-	{
-        if (BoardGUI.this.position.sideToMove == Piece.Color.WHITE)
-		{ 
-        	gamelog.setText("White resigns.\n Black wins!");
+    protected void renderBoardState()
+    {
+        for(int sq = Board.A1;sq <= Board.H8;sq++) {
+            int piece = game.position.pieceAt(sq);
+            String p = String.valueOf(pieceToChar.charAt(piece));
+            board[sq].setText(p);
+            board[sq].setFont(new Font("Mx Boli", Font.PLAIN, 45));
+            board[sq].setForeground(Piece.isColor(piece, Piece.Color.WHITE) ? Color.WHITE : Color.BLACK);
         }
-        else
-        {
-        	gamelog.setText("Black resigns.\n White wins!");
-        }
-        frame.add(newGame);
-        frame.remove(resign);
-        frame.repaint();
-        frame.revalidate();
- 	}
+    }
 
 	protected void save(JFrame frame)
 	{
@@ -339,6 +373,18 @@ public class BoardGUI extends JFrame implements ActionListener {
 		frame.revalidate(); 
 		frame.repaint();
 	}
+
+    protected void clearLog()
+    {
+        gamelog.setText("");
+    }
+
+    protected void log(String log) 
+    {
+        gamelog.setText(
+            gamelog.getText()+"\n"+log    
+        );
+    }
 
     protected void saveDuringGame(JFrame frame)
 	{
@@ -366,8 +412,8 @@ public class BoardGUI extends JFrame implements ActionListener {
 	protected void parseFen()
 	{
 		this.fenString = gamelog.getText();
-		this.position = fen.parse(fenString);
-		this.game = new GameOfChess(this.position);
+		Position position = fen.parse(fenString);
+		this.game = new GameOfChess(position);
         this.game.state().addObserver(new GameObserver());
         this.game.start();
 	}
@@ -375,9 +421,9 @@ public class BoardGUI extends JFrame implements ActionListener {
 	protected void parseAlg()
 	{
 		this.algString = gamelog.getText();
-		this.position = alg.parse(algString);
-		System.out.println(this.position);
-		this.game = new GameOfChess(this.position);
+		Position position = alg.parse(algString);
+		System.out.println(position);
+		this.game = new GameOfChess(position);
         this.game.state().addObserver(new GameObserver());
         this.game.start();
 	}
@@ -394,35 +440,47 @@ public class BoardGUI extends JFrame implements ActionListener {
 
 
     protected void selectedSquare(int square) {
-        if(this.moves.size() > 0) {
-            Move move;
-            System.out.println("===");
-            System.out.println(this.selectedSquare+"->"+square);
-            for(Move m : this.moves){
-                System.out.println(m.from+"->"+m.to);
+        if(canMakeMove()) {
+            makeMoveTo(square);
+        } else {
+            highlightMoves(square);
+        }        
+    }
+
+    protected void highlightMoves(int square)
+    {
+        moves = game.position.generateLegalMoves(Board.BB_SQUARES[square]);
+        selectedSquare = square;
+        for(int sq=Board.A1;sq<=Board.H8;sq++) {
+            if(Bitboard.valueAt(moves.getToMask(), sq)) {
+                board[sq].setBackground(new Color(240, 110, 110));
+            } else if(sq == square) {
+                board[sq].setBackground(new Color(100, 145, 170));
+            } else {
+                board[sq].setBackground(squareBg(sq));
             }
-            if((move = this.moves.get(this.selectedSquare, square)) != null) {
-                
-                this.game.push(move);
-            }
-            this.moves = new MoveList();
-            this.clearHighlights();
+        }
+    }
+
+    protected void makeMoveTo(int square) {        
+        if(this.selectedSquare == Board.SQUARE_NONE) {
             return;
         }
 
-        System.out.println(square);
-
-        this.moves = this.position.generateLegalMoves(Board.BB_SQUARES[square]);
-        this.selectedSquare = square;
-        for(int sq=Board.A1;sq<=Board.H8;sq++) {
-            if(Bitboard.valueAt(this.moves.getToMask(), sq)) {
-                this.board[sq].setBackground(new Color(240, 110, 110));
-            } else if(sq == square) {
-                this.board[sq].setBackground(new Color(100, 145, 170));
-            } else {
-                this.board[sq].setBackground(squareBg(sq));
-            }
+        if(this.moves.exists(this.selectedSquare, square)) {
+            this.game.push(this.moves.get(this.selectedSquare, square));
         }
+
+        // Clear move list.
+        this.moves = new MoveList();
+        // Clear highlights.
+        this.clearHighlights();
+        this.selectedSquare = Board.SQUARE_NONE;
+    }
+
+    protected boolean canMakeMove()
+    {
+        return this.moves.size() > 0;
     }
 
     protected void clearHighlights() {
@@ -436,25 +494,26 @@ public class BoardGUI extends JFrame implements ActionListener {
     }
 
     protected void gameLog(int tileSize, JFrame frame)
-  {
-    frame.add(resign);
-    frame.remove(newGame);
-    frame.remove(loadGame);
-    frame.remove(loadalg);
-    frame.remove(loadpgm);
-    frame.remove(savealg);
-    frame.remove(savepgm);
-    frame.remove(saveGame);
-    frame.add(saveGameDuringGame);
-    frame.revalidate();
-    frame.repaint();
-  }
+    {
+        frame.add(resign);
+        frame.remove(newGame);
+        frame.remove(loadGame);
+        frame.remove(loadalg);
+        frame.remove(loadpgm);
+        frame.remove(savealg);
+        frame.remove(savepgm);
+        frame.remove(saveGame);
+        frame.add(saveGameDuringGame);
+        frame.revalidate();
+        frame.repaint();
+    }
+
     /**
      * Invoked when an action occurs.
      * @param e the event to be processed
      */
     public void actionPerformed(ActionEvent e)
     {
-
+        
     }
 }

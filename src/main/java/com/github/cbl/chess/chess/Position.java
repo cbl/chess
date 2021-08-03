@@ -14,6 +14,7 @@ public class Position implements Cloneable {
     public long castlingRights = 0;
     public long epSquare = 0;
     public long[] checkSquares = new long[7];
+    public long checkers = 0;
 
     protected int moveIndex = 0;
     protected Move[] moves = new Move[Move.MAX_MOVES_COUNT];
@@ -225,6 +226,25 @@ public class Position implements Cloneable {
     {
         this.pinned[Piece.Color.WHITE] = this.sliderBlockers(Piece.Color.WHITE);
         this.pinned[Piece.Color.BLACK] = this.sliderBlockers(Piece.Color.BLACK);
+        this.checkers = this.attackers(this.themColor(), Board.fromBB(this.king(this.themColor())));
+    }
+
+    /**
+     * Determines whether it is checkmate.
+     */
+    public boolean isCheckmate()
+    {
+        if(!this.isCheck()) return false;
+
+        return this.generateLegalMoves(Bitboard.ALL).isEmpty();
+    }
+
+    /**
+     * Determine whether the king is in check.
+     */
+    public boolean isCheck()
+    {
+        return this.checkers != 0;
     }
 
     /**
@@ -283,8 +303,6 @@ public class Position implements Cloneable {
         long nonPawns = ourPieces & fromMask & ~this.pawns() ;
         for(int from : Board.toReversedList(nonPawns)) {
             long moves = this.attacks(from) & ~ourPieces & toMask;
-            System.out.println("moves:::");
-            System.out.println(Bitboard.toAscii(moves));
             for(int to : Board.toReversedList(moves)) 
                 moveList.add(new Move(from, to));
         }
@@ -477,8 +495,6 @@ public class Position implements Cloneable {
         int checker = Bitboard.lsb(checkers);
         if(Board.BB_SQUARES[checker] == checkers) {
             long target = BBIndex.between[kingSquare][checker] | checkers;
-
-            System.out.println(Bitboard.toAscii(target & toMask));
 
             // Moves that capture the checker:
             evasions.addAll(this.generatePseudoLegalMoves(fromMask, target & toMask));

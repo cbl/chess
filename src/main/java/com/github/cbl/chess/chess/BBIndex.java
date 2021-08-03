@@ -128,11 +128,15 @@ public class BBIndex {
 
     protected long pawnAttacks(int color, int square) {
         int forward = color == Piece.Color.WHITE ? Move.UP : Move.DOWN;
+        int upperRank = color == Piece.Color.WHITE ? Board.RANK_8 : Board.RANK_1;
         long attacks = 0;
 
-        if(Board.isOnBoard(square + forward + Move.RIGHT))
+        if(Board.getRank(square) == upperRank)
+            return attacks;
+
+        if(Board.getFile(square) != Board.FILE_H)
             attacks |= Board.BB_SQUARES[square + forward + Move.RIGHT];
-        if(Board.isOnBoard(square + forward + Move.LEFT))
+        if(Board.getFile(square) != Board.FILE_A)
             attacks |= Board.BB_SQUARES[square + forward + Move.LEFT];
 
         return attacks;

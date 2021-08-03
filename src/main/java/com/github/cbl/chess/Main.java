@@ -8,8 +8,7 @@ import com.github.cbl.chess.console.CLI;
 import com.github.cbl.chess.chess.Piece;
 import com.github.cbl.chess.notations.FenNotation;
 import com.github.cbl.chess.notations.Notation;
-import com.github.cbl.chess.ui.DesktopUI;
-import com.github.cbl.chess.ui.UI;
+import com.github.cbl.chess.ui.BoardUi;
 import com.github.cbl.chess.chess.GameOfChess;
 
 import java.lang.Runnable;
@@ -29,10 +28,7 @@ public class Main {
         // cli.run();
 
         // UI.run();
-        BoardGUI gui = new BoardGUI();
-
-        System.out.println(Bitboard.toAscii(BBIndex.between[0][16]));
-        System.out.println(Bitboard.toAscii(BBIndex.streched[0][4]));
+        BoardUi ui = new BoardUi();
     }
 }
 

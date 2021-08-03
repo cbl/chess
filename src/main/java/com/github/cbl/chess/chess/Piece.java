@@ -33,12 +33,25 @@ public class Piece {
     }
 
     public static class Color {
+        public static final int NONE = -1;
         public static final int WHITE = 0;
         public static final int BLACK = 1;
         public static final int ANY = 2;
 
         public static int opposite(int color) {
             return color == WHITE ? BLACK : WHITE;
+        }
+
+        public static String toString(int color) {
+            if(color == WHITE) {
+                return "white";
+            }
+
+            if(color == BLACK) {
+                return "black";
+            }
+
+            return "";
         }
     }
 
