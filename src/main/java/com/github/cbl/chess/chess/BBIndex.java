@@ -66,7 +66,7 @@ public class BBIndex {
             }
 
             for (int move: Move.KING_MOVES)
-                pseudo[Piece.KING][sq] |= Board.getSafeBBSquare(sq + move);
+                pseudo[Piece.KING][sq] |= Bitboard.safeDestination(sq, move);
 
             files[sq] = Bitboard.FILES[Board.getFile(sq)];
             ranks[sq] = Bitboard.RANKS[Board.getRank(sq)];

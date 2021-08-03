@@ -332,13 +332,12 @@ public class BoardUi extends JFrame implements ActionListener {
 		saveGame.addActionListener(e -> save(frame));
 		loadGame.addActionListener(e -> load(frame));
         saveGameDuringGame.addActionListener(e -> saveDuringGame(frame));
-
-        this.newGame(frame);
 	}
 
     protected void newGame(JFrame frame) {
         Position position = fen.parse(
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
+            // "k7/7P/8/8/8/8/p7/7K w - - 0 0"
             // "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
             // "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
             // "8/8/8/8/8/8/6b1/8 w KQkq - 1 6"

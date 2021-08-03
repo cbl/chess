@@ -131,6 +131,12 @@ public class Bitboard {
         return rank & file;
     }
 
+    public static long safeDestination(int square, int step) {
+        int to = square + step;
+        return Board.isOnBoard(to) && Board.distance(square, to) <= 2 
+            ? Board.BB_SQUARES[to] : 0;
+    }
+
     public static long safe(long board) {
         return board & (QUEEN_SIDE | KING_SIDE);
     }
