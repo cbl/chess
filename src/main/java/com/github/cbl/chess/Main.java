@@ -4,7 +4,6 @@ import com.github.cbl.chess.chess.Bitboard;
 import com.github.cbl.chess.chess.Board;
 import com.github.cbl.chess.chess.BBIndex;
 import com.github.cbl.chess.chess.Position;
-import com.github.cbl.chess.console.CLI;
 import com.github.cbl.chess.chess.Piece;
 import com.github.cbl.chess.notations.FenNotation;
 import com.github.cbl.chess.notations.Notation;

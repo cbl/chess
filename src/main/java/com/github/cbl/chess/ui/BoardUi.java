@@ -21,7 +21,6 @@ import com.github.cbl.chess.chess.Move;
 import com.github.cbl.chess.chess.Board;
 import com.github.cbl.chess.chess.BBIndex;
 import com.github.cbl.chess.chess.Position;
-import com.github.cbl.chess.console.CLI;
 import com.github.cbl.chess.chess.Piece;
 import com.github.cbl.chess.notations.AlgebraicNotation;
 import com.github.cbl.chess.notations.FenNotation;
@@ -35,11 +34,15 @@ import com.github.cbl.chess.chess.Board;
 
 public class BoardUi extends JFrame {
     char[] xAxisLabels = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
-    int tileSize = 75;
+    int sqSize = 75;
     int boardXOffset = 50;
     int boardYOffset = 50;
     int sideBarWidth = 350;
     int buttonOffset = 5;
+    Color bgColor = new Color(27,38,44);
+    Color lightSquareColor = new Color(105, 114, 129);
+    Color darkSquareColor = new Color(79, 86, 97);
+    Color btnTextColor = Color.BLACK;
     JPanel sideBar;
 	JButton newGameButton;
 	JButton resignButton;
@@ -65,6 +68,7 @@ public class BoardUi extends JFrame {
 
     JFrame frame = new JFrame();
 	JTextArea gamelog;
+    JTextArea input;
     int selectedSquare = Board.SQUARE_NONE;
 	String fenString;
 	String algString;
@@ -158,8 +162,8 @@ public class BoardUi extends JFrame {
 		newGameButton.setBounds(boardWidth(), buttonY(0), sideBarWidth, buttonHeight());
 		newGameButton.setText("New Game");
 		newGameButton.setFocusable(false);
-		newGameButton.setForeground(Color.LIGHT_GRAY);
-		newGameButton.setBackground(Color.black);
+		newGameButton.setForeground(btnTextColor);
+		newGameButton.setBackground(lightSquareColor);
 		
 		resignButton = new JButton();
 		resignButton.setBounds(boardWidth(), buttonY(0), sideBarWidth/2-buttonOffset, buttonHeight());
@@ -198,7 +202,7 @@ public class BoardUi extends JFrame {
 		loadFenButton.addActionListener(e -> parseFen());
 		
 		loadalgButton = new JButton();
-		loadalgButton.setBounds(boardWidth(), buttonY(2), sideBarWidth/2-buttonOffset, tileSize);
+		loadalgButton.setBounds(boardWidth()+sideBarWidth/2, buttonY(2), sideBarWidth/2-buttonOffset, buttonHeight());
 		loadalgButton.setText("Import ALG");
 		loadalgButton.setFocusable(false);
 		loadalgButton.setForeground(Color.LIGHT_GRAY);
@@ -206,7 +210,7 @@ public class BoardUi extends JFrame {
 		loadalgButton.addActionListener(e -> parseAlg());
 
 		saveFenButton = new JButton();
-		saveFenButton.setBounds(boardWidth(), buttonY(2), 2*tileSize, tileSize);
+		saveFenButton.setBounds(boardWidth(), buttonY(2), sideBarWidth/2-buttonOffset, buttonHeight());
 		saveFenButton.setText("Export as FEN");
 		saveFenButton.setFocusable(false);
 		saveFenButton.setForeground(Color.LIGHT_GRAY);
@@ -214,7 +218,7 @@ public class BoardUi extends JFrame {
 		saveFenButton.addActionListener(e -> onClickSaveFen());
 		
 		savealgButton = new JButton();
-		savealgButton.setBounds(boardWidth(), buttonY(2), 2*tileSize, tileSize);
+		savealgButton.setBounds(boardWidth()+sideBarWidth/2, buttonY(2), sideBarWidth/2-buttonOffset, buttonHeight());
 		savealgButton.setText("Export as ALG");
 		savealgButton.setFocusable(false);
 		savealgButton.setForeground(Color.LIGHT_GRAY);
@@ -222,8 +226,8 @@ public class BoardUi extends JFrame {
 		savealgButton.addActionListener(e -> createAlg());
 
 		gamelog = new JTextArea();
-		gamelog.setBounds(boardWidth(), buttonY(3), sideBarWidth, 4*tileSize);
-		Border border = BorderFactory.createLineBorder(Color.BLACK, 5);
+		gamelog.setBounds(boardWidth(), buttonY(4), sideBarWidth, 4*sqSize);
+		Border border = BorderFactory.createLineBorder(Color.BLACK, 4);
 		gamelog.setBorder(border);
 
         for (int r = 7; r >= 0; r--) {
@@ -235,8 +239,7 @@ public class BoardUi extends JFrame {
                 btn.setBackground(
                     this.squareBg(square)
                 );
-                placeOnBoard(btn, (f*tileSize), ((7-r)*tileSize), tileSize, tileSize);
-                // btn.setBounds(1,1,tileSize,tileSize);
+                placeOnBoard(btn, (f*sqSize), ((7-r)*sqSize), sqSize, sqSize);
                 btn.setFont(new Font("Silom", 0, 50));
                 btn.addActionListener(e -> this.selectedSquare(square));
                 board[square] = btn;
@@ -246,22 +249,22 @@ public class BoardUi extends JFrame {
 		//Axis Labels
         for(int i = 7; i >= 0; i--) {
             JPanel yCoordinateP = new JPanel();
-            placeOnBoard(yCoordinateP, 8*tileSize, i*tileSize+(tileSize/3), tileSize/3, tileSize);
+            placeOnBoard(yCoordinateP, 8*sqSize, i*sqSize+(sqSize/3), sqSize/3, sqSize);
             // yCoordinateP.setBackground(new Color(230,248,220));
             yCoordinateP.setOpaque(false);
             JLabel yCoordinateL = new JLabel();
             yCoordinateL.setText(Integer.toString(8-i));
-            yCoordinateL.setFont(new Font("My Boli", Font.PLAIN, tileSize/4));
+            yCoordinateL.setFont(new Font("My Boli", Font.PLAIN, sqSize/4));
             yCoordinateP.add(yCoordinateL);
             frame.add(yCoordinateP);
 
             JPanel xCoordinatesP = new JPanel();
-            placeOnBoard(xCoordinatesP, i*tileSize, 8*tileSize, tileSize, tileSize);
+            placeOnBoard(xCoordinatesP, i*sqSize, 8*sqSize, sqSize, sqSize);
             // xCoordinatesP.setBackground(new Color(230,248,220));
             xCoordinatesP.setOpaque(false);
             JLabel xCoordinatesL = new JLabel();
             xCoordinatesL.setText(Character.toString(xAxisLabels[i]));
-            xCoordinatesL.setFont(new Font("Mx Boli", Font.PLAIN, tileSize/4));
+            xCoordinatesL.setFont(new Font("Mx Boli", Font.PLAIN, sqSize/4));
             xCoordinatesP.add(xCoordinatesL);
             frame.add(xCoordinatesP);
         }
@@ -272,7 +275,7 @@ public class BoardUi extends JFrame {
 		frame.setLayout(null);
 		frame.setSize(frameWidth(), frameHeight());
 		frame.setVisible(true);
-		frame.getContentPane().setBackground(new Color(230,248,220));
+		frame.getContentPane().setBackground(bgColor);
 		frame.add(newGameButton);
 		frame.add(loadGameButton);
 		frame.add(gamelog);
@@ -282,7 +285,7 @@ public class BoardUi extends JFrame {
         }
 
         JPanel boardBG = new JPanel();
-        placeOnBoard(boardBG, -tileSize/2, -tileSize/2, tileSize*9, tileSize*9);
+        placeOnBoard(boardBG, -sqSize/2, -sqSize/2, sqSize*9, sqSize*9);
         boardBG.setBackground(squareBg(Piece.Color.WHITE));
         frame.add(boardBG);
 		
@@ -296,23 +299,23 @@ public class BoardUi extends JFrame {
 	}
 
     protected int buttonY(int pos) {
-        return boardYOffset+buttonOffset+pos*tileSize;
+        return boardYOffset+buttonOffset+pos*sqSize;
     }
 
     protected int buttonHeight() {
-        return tileSize-2*buttonOffset;
+        return sqSize-2*buttonOffset;
     }
 
     protected int boardWidth() {
-        return tileSize * 8 + 2 * boardXOffset;
+        return sqSize * 8 + 2 * boardXOffset;
     }
 
     protected int frameWidth() {
-        return tileSize * 8 + 3 * boardXOffset - tileSize/2 + sideBarWidth;
+        return sqSize * 8 + 3 * boardXOffset - sqSize/2 + sideBarWidth;
     }
 
     protected int frameHeight() {
-        return tileSize * 8 + (int) (2.5 * (double) boardYOffset);
+        return sqSize * 8 + (int) (2.5 * (double) boardYOffset);
     }
 
     protected void placeOnBoard(Component c, int x, int y, int width, int height)
@@ -484,6 +487,6 @@ public class BoardUi extends JFrame {
      * Get the square background for the given square.
      */
     protected Color squareBg(int square) {
-        return Board.isWhite(square) ? new Color(105, 114, 129) : new Color(79, 86, 97);
+        return Board.isWhite(square) ? lightSquareColor : darkSquareColor;
     }
 }
