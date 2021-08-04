@@ -12,12 +12,12 @@ public class GameOfChess
 
     public enum Transition
     {
-        Start, Move, Resign, TimeExpired, Cancel, Over
+        Start, Move, Resign, Cancel, Over
     }
 
     public enum Termination
     {
-        CHECKMATE, STALEMATE, INSUFFICIENT_MATERIAL, THREEFOLD_REPETITION, WIN, DRAW, RESIGNED
+        CHECKMATE, STALEMATE, INSUFFICIENT_MATERIAL, THREEFOLD_REPETITION, RESIGNED
     }
 
     public class Outcome
@@ -42,7 +42,6 @@ public class GameOfChess
         state.allow(Transition.Move, State.Waiting, State.Thinking);
         state.allow(Transition.Move, State.Thinking, State.Thinking);
         state.allow(Transition.Resign, State.Thinking, State.Over);
-        state.allow(Transition.TimeExpired, State.Thinking, State.Over);
         state.allow(Transition.Cancel, State.Waiting, State.Over);
         state.allow(Transition.Over, State.Thinking, State.Over);
     }
@@ -64,7 +63,7 @@ public class GameOfChess
         state.transition(Transition.Move);
 
         // Check if the game has ended.
-        if(outcome().winner != Piece.Color.NONE) 
+        if(outcome().termination != null) 
             state.transition(Transition.Over);
 
         return true;
@@ -83,6 +82,14 @@ public class GameOfChess
 
         if(position.isCheckmate()) {
             return new Outcome(Termination.CHECKMATE, position.themColor());
+        }
+
+        if(position.isStalemate()) {
+            return new Outcome(Termination.STALEMATE, position.themColor());
+        }
+
+        if(position.isInsufficientMaterial()) {
+            return new Outcome(Termination.INSUFFICIENT_MATERIAL, Piece.Color.NONE);
         }
         
         return new Outcome(null, Piece.Color.NONE);

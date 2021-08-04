@@ -1,6 +1,7 @@
 package com.github.cbl.chess.ui;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -32,28 +33,34 @@ import com.github.cbl.chess.util.Observer;
 import com.github.cbl.chess.chess.Board;
 
 
-public class BoardUi extends JFrame implements ActionListener {
+public class BoardUi extends JFrame {
+    char[] xAxisLabels = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
     int tileSize = 75;
-    String getWinnder;
-	JButton newGame;
-	JButton resign;
-	JButton back;
-	JButton forward;
-	JButton loadGame;
-	JButton saveGame;
-    JButton saveGameDuringGame;
-	JButton savepgm;
-	JButton savealg;
-	JButton loadpgm;
-	JButton loadalg;
+    int boardXOffset = 50;
+    int boardYOffset = 50;
+    int sideBarWidth = 350;
+    int buttonOffset = 5;
+    JPanel sideBar;
+	JButton newGameButton;
+	JButton resignButton;
+	JButton backButton;
+	JButton forwardButton;
+	JButton loadGameButton;
+	JButton saveGameButton;
+    JButton saveGameDuringGameButton;
+	JButton saveFenButton;
+	JButton savealgButton;
+	JButton loadFenButton;
+	JButton loadalgButton;
     JButton[] gameButtons = {
-        resign, back, forward, saveGame, saveGameDuringGame, savepgm, savealg
+        resignButton, backButton, forwardButton, saveGameButton, 
+        saveGameDuringGameButton, saveFenButton, savealgButton
     };
     JButton[] initialGameButtons = {
-        resign, saveGame
+        resignButton, saveGameButton
     };
     JButton[] beforeGameButtons = {
-        newGame, loadGame
+        newGameButton, loadGameButton, loadFenButton, loadalgButton
     };
 
     JFrame frame = new JFrame();
@@ -71,6 +78,12 @@ public class BoardUi extends JFrame implements ActionListener {
     private static final String pieceToChar = " ♙♘♗♖♕♔  ♟♞♝♜♛♚ ";
 
     private class GameObserver extends Observer {
+        BoardUi ui;
+
+        GameObserver(BoardUi ui) {
+            this.ui = ui;
+        }
+
         public void handle(Object e, Object v) {
             StateMachine.Event event = (StateMachine.Event) e;
 
@@ -94,7 +107,7 @@ public class BoardUi extends JFrame implements ActionListener {
         }
 
         void handleTransitionedFrom(GameOfChess.State state) {
-
+            //
         }
 
         void handleTransitionedTo(GameOfChess.State state) {
@@ -103,27 +116,27 @@ public class BoardUi extends JFrame implements ActionListener {
             }
         }
 
-        void handleResignTransition()
-        {
-            String color = Piece.Color.toString(BoardUi.this.game.position.sideToMove);
-            BoardUi.this.log(color+" resigned the game.");
+        void handleResignTransition() {
+            String color = Piece.Color.toString(ui.game.position.sideToMove);
+            ui.log(color+" resigned the game.");
         }
 
-        void handleStartTransition()
-        {
-            for(JButton button : beforeGameButtons)
-                if(button != null) BoardUi.this.frame.remove(button);
-            for(JButton button : initialGameButtons)
-                if(button != null) BoardUi.this.frame.add(button);
-            BoardUi.this.frame.revalidate(); 
-            BoardUi.this.frame.repaint();
+        void handleStartTransition() {
+            for(JButton button : ui.beforeGameButtons) {
+                if(button != null) ui.frame.remove(button);
+            }
+            
+            for(JButton button : ui.initialGameButtons) {
+                if(button != null) ui.frame.add(button);
+            }
+            ui.frame.revalidate(); 
+            ui.frame.repaint();
         }
 
-        void handleOverState()
-        {
-            for(JButton button : gameButtons)
+        void handleOverState() {
+            for(JButton button : BoardUi.this.gameButtons)
                 if(button != null) BoardUi.this.frame.remove(button);
-            for(JButton button : beforeGameButtons)
+            for(JButton button : BoardUi.this.beforeGameButtons)
                 if(button != null) BoardUi.this.frame.add(button);
             BoardUi.this.frame.revalidate(); 
             BoardUi.this.frame.repaint();
@@ -132,6 +145,8 @@ public class BoardUi extends JFrame implements ActionListener {
             if(outcome.winner != Piece.Color.NONE) {
                 String color = Piece.Color.toString(outcome.winner);
                 BoardUi.this.log(color+" won the game! ("+outcome.termination.name()+")");
+            } else if(outcome.termination != null) {
+                BoardUi.this.log("Draw! ("+outcome.termination.name()+")");
             }
         }
     }
@@ -139,75 +154,75 @@ public class BoardUi extends JFrame implements ActionListener {
 	public BoardUi()
 	{
 		//Buttons
-		newGame = new JButton();
-		newGame.setBounds(tileSize*9, 25, 4*tileSize, tileSize);
-		newGame.setText("New Game");
-		newGame.setFocusable(false);
-		newGame.setForeground(Color.LIGHT_GRAY);
-		newGame.setBackground(Color.black);
+		newGameButton = new JButton();
+		newGameButton.setBounds(boardWidth(), buttonY(0), sideBarWidth, buttonHeight());
+		newGameButton.setText("New Game");
+		newGameButton.setFocusable(false);
+		newGameButton.setForeground(Color.LIGHT_GRAY);
+		newGameButton.setBackground(Color.black);
 		
-		resign = new JButton();
-		resign.setBounds(tileSize*9, 25, 4*tileSize, tileSize);
-		resign.setText("Resign");
-		resign.setFocusable(false);
-		resign.setForeground(Color.LIGHT_GRAY);
-		resign.setBackground(Color.black);
+		resignButton = new JButton();
+		resignButton.setBounds(boardWidth(), buttonY(0), sideBarWidth/2-buttonOffset, buttonHeight());
+		resignButton.setText("Resign");
+		resignButton.setFocusable(false);
+		resignButton.setForeground(Color.LIGHT_GRAY);
+		resignButton.setBackground(Color.black);
 		
-		loadGame = new JButton();
-		loadGame.setBounds(tileSize*9, tileSize+50, 2*tileSize, tileSize);
-		loadGame.setText("Import Game");
-		loadGame.setFocusable(false);
-		loadGame.setForeground(Color.LIGHT_GRAY);
-		loadGame.setBackground(Color.black);
+		loadGameButton = new JButton();
+		loadGameButton.setBounds(boardWidth(), buttonY(1), sideBarWidth/2-buttonOffset, buttonHeight());
+		loadGameButton.setText("Import Game");
+		loadGameButton.setFocusable(false);
+		loadGameButton.setForeground(Color.LIGHT_GRAY);
+		loadGameButton.setBackground(Color.black);
 
-		saveGame = new JButton();
-		saveGame.setBounds(tileSize*11, tileSize+50, 2*tileSize, tileSize);
-		saveGame.setText("Export Game");
-		saveGame.setFocusable(false);
-		saveGame.setForeground(Color.LIGHT_GRAY);
-		saveGame.setBackground(Color.black);
+		saveGameButton = new JButton();
+		saveGameButton.setBounds(boardWidth(), buttonY(1), sideBarWidth/2-buttonOffset, buttonHeight());
+		saveGameButton.setText("Export Game");
+		saveGameButton.setFocusable(false);
+		saveGameButton.setForeground(Color.LIGHT_GRAY);
+		saveGameButton.setBackground(Color.black);
 
-        saveGameDuringGame = new JButton();
-		saveGameDuringGame.setBounds(tileSize*9, tileSize+50, 4*tileSize, tileSize);
-		saveGameDuringGame.setText("Export Game");
-		saveGameDuringGame.setFocusable(false);
-		saveGameDuringGame.setForeground(Color.LIGHT_GRAY);
-		saveGameDuringGame.setBackground(Color.black);
+        saveGameDuringGameButton = new JButton();
+		saveGameDuringGameButton.setBounds(boardWidth(), buttonY(1), sideBarWidth, buttonHeight());
+		saveGameDuringGameButton.setText("Export Game");
+		saveGameDuringGameButton.setFocusable(false);
+		saveGameDuringGameButton.setForeground(Color.LIGHT_GRAY);
+		saveGameDuringGameButton.setBackground(Color.black);
 
-		loadpgm = new JButton();
-		loadpgm.setBounds(tileSize*9, 75+tileSize*2, 2*tileSize, tileSize);
-		loadpgm.setText("Import PGM");
-		loadpgm.setFocusable(false);
-		loadpgm.setForeground(Color.LIGHT_GRAY);
-		loadpgm.setBackground(Color.black);
-		loadpgm.addActionListener(e -> parseFen());
+		loadFenButton = new JButton();
+		loadFenButton.setBounds(boardWidth(), buttonY(2), sideBarWidth/2-buttonOffset, buttonHeight());
+		loadFenButton.setText("Import FEN");
+		loadFenButton.setFocusable(false);
+		loadFenButton.setForeground(Color.LIGHT_GRAY);
+		loadFenButton.setBackground(Color.black);
+		loadFenButton.addActionListener(e -> parseFen());
 		
-		loadalg = new JButton();
-		loadalg.setBounds(tileSize*11, 75+tileSize*2, 2*tileSize, tileSize);
-		loadalg.setText("Import ALG");
-		loadalg.setFocusable(false);
-		loadalg.setForeground(Color.LIGHT_GRAY);
-		loadalg.setBackground(Color.black);
-		loadalg.addActionListener(e -> parseAlg());
+		loadalgButton = new JButton();
+		loadalgButton.setBounds(boardWidth(), buttonY(2), sideBarWidth/2-buttonOffset, tileSize);
+		loadalgButton.setText("Import ALG");
+		loadalgButton.setFocusable(false);
+		loadalgButton.setForeground(Color.LIGHT_GRAY);
+		loadalgButton.setBackground(Color.black);
+		loadalgButton.addActionListener(e -> parseAlg());
 
-		savepgm = new JButton();
-		savepgm.setBounds(tileSize*9, 75+tileSize*2, 2*tileSize, tileSize);
-		savepgm.setText("Export as PGM");
-		savepgm.setFocusable(false);
-		savepgm.setForeground(Color.LIGHT_GRAY);
-		savepgm.setBackground(Color.black);
-		savepgm.addActionListener(e -> createFen());
+		saveFenButton = new JButton();
+		saveFenButton.setBounds(boardWidth(), buttonY(2), 2*tileSize, tileSize);
+		saveFenButton.setText("Export as FEN");
+		saveFenButton.setFocusable(false);
+		saveFenButton.setForeground(Color.LIGHT_GRAY);
+		saveFenButton.setBackground(Color.black);
+		saveFenButton.addActionListener(e -> onClickSaveFen());
 		
-		savealg = new JButton();
-		savealg.setBounds(tileSize*11, 75+tileSize*2, 2*tileSize, tileSize);
-		savealg.setText("Export as ALG");
-		savealg.setFocusable(false);
-		savealg.setForeground(Color.LIGHT_GRAY);
-		savealg.setBackground(Color.black);
-		savealg.addActionListener(e -> createAlg());
+		savealgButton = new JButton();
+		savealgButton.setBounds(boardWidth(), buttonY(2), 2*tileSize, tileSize);
+		savealgButton.setText("Export as ALG");
+		savealgButton.setFocusable(false);
+		savealgButton.setForeground(Color.LIGHT_GRAY);
+		savealgButton.setBackground(Color.black);
+		savealgButton.addActionListener(e -> createAlg());
 
 		gamelog = new JTextArea();
-		gamelog.setBounds(9*tileSize,4*tileSize,4*tileSize, 4*tileSize);
+		gamelog.setBounds(boardWidth(), buttonY(3), sideBarWidth, 4*tileSize);
 		Border border = BorderFactory.createLineBorder(Color.BLACK, 5);
 		gamelog.setBorder(border);
 
@@ -220,138 +235,107 @@ public class BoardUi extends JFrame implements ActionListener {
                 btn.setBackground(
                     this.squareBg(square)
                 );
-                btn.setBounds((f*tileSize),((7-r)*tileSize),tileSize,tileSize);
+                placeOnBoard(btn, (f*tileSize), ((7-r)*tileSize), tileSize, tileSize);
+                // btn.setBounds(1,1,tileSize,tileSize);
                 btn.setFont(new Font("Silom", 0, 50));
                 btn.addActionListener(e -> this.selectedSquare(square));
-                btn.addActionListener(e -> gameLog(tileSize, frame));
                 board[square] = btn;
             }
         }
 
-		//Axis lable
-		JPanel xCoordinatesPanel = new JPanel();
-		xCoordinatesPanel.setBounds(0, 8*tileSize, 8*tileSize, 2*tileSize);
-		xCoordinatesPanel.setBackground(new Color(230,248,220));
-		JLabel xCoordinatesLabel = new JLabel();
-		xCoordinatesLabel.setText("A B C D E F G H");
-		xCoordinatesLabel.setFont(new Font("Mx Boli", Font.PLAIN,tileSize));
-		xCoordinatesPanel.add(xCoordinatesLabel);
+		//Axis Labels
+        for(int i = 7; i >= 0; i--) {
+            JPanel yCoordinateP = new JPanel();
+            placeOnBoard(yCoordinateP, 8*tileSize, i*tileSize+(tileSize/3), tileSize/3, tileSize);
+            // yCoordinateP.setBackground(new Color(230,248,220));
+            yCoordinateP.setOpaque(false);
+            JLabel yCoordinateL = new JLabel();
+            yCoordinateL.setText(Integer.toString(8-i));
+            yCoordinateL.setFont(new Font("My Boli", Font.PLAIN, tileSize/4));
+            yCoordinateP.add(yCoordinateL);
+            frame.add(yCoordinateP);
 
-		JPanel yCoordinatesPanel1 = new JPanel();
-		yCoordinatesPanel1.setBounds(8*tileSize,(7*tileSize),tileSize,tileSize);
-		yCoordinatesPanel1.setBackground(new Color(230,248,220));
-		JLabel yCoordinatesLabel1 = new JLabel();
-		yCoordinatesLabel1.setText("1");
-		yCoordinatesLabel1.setFont(new Font("My Boli", Font.PLAIN,tileSize));
-		yCoordinatesPanel1.add(yCoordinatesLabel1);
+            JPanel xCoordinatesP = new JPanel();
+            placeOnBoard(xCoordinatesP, i*tileSize, 8*tileSize, tileSize, tileSize);
+            // xCoordinatesP.setBackground(new Color(230,248,220));
+            xCoordinatesP.setOpaque(false);
+            JLabel xCoordinatesL = new JLabel();
+            xCoordinatesL.setText(Character.toString(xAxisLabels[i]));
+            xCoordinatesL.setFont(new Font("Mx Boli", Font.PLAIN, tileSize/4));
+            xCoordinatesP.add(xCoordinatesL);
+            frame.add(xCoordinatesP);
+        }
 
-		JPanel yCoordinatesPanel2 = new JPanel();
-		yCoordinatesPanel2.setBounds(8*tileSize,(6*tileSize),tileSize,tileSize);
-		yCoordinatesPanel2.setBackground(new Color(230,248,220));
-		JLabel yCoordinatesLabel2 = new JLabel();
-		yCoordinatesLabel2.setText("2");
-		yCoordinatesLabel2.setFont(new Font("My Boli", Font.PLAIN,tileSize));
-		yCoordinatesPanel2.add(yCoordinatesLabel2);
-
-		JPanel yCoordinatesPanel3 = new JPanel();
-		yCoordinatesPanel3.setBounds(8*tileSize,(5*tileSize),tileSize,tileSize);
-		yCoordinatesPanel3.setBackground(new Color(230,248,220));
-		JLabel yCoordinatesLabel3 = new JLabel();
-		yCoordinatesLabel3.setText("3");
-		yCoordinatesLabel3.setFont(new Font("My Boli", Font.PLAIN,tileSize));
-		yCoordinatesPanel3.add(yCoordinatesLabel3);
-
-		JPanel yCoordinatesPanel4 = new JPanel();
-		yCoordinatesPanel4.setBounds(8*tileSize,(4*tileSize),tileSize,tileSize);
-		yCoordinatesPanel4.setBackground(new Color(230,248,220));
-		JLabel yCoordinatesLabel4 = new JLabel();
-		yCoordinatesLabel4.setText("4");
-		yCoordinatesLabel4.setFont(new Font("My Boli", Font.PLAIN,tileSize));
-		yCoordinatesPanel4.add(yCoordinatesLabel4);
-
-		JPanel yCoordinatesPanel5 = new JPanel();
-		yCoordinatesPanel5.setBounds(8*tileSize,(3*tileSize),tileSize,tileSize);
-		yCoordinatesPanel5.setBackground(new Color(230,248,220));
-		JLabel yCoordinatesLabel5 = new JLabel();
-		yCoordinatesLabel5.setText("5");
-		yCoordinatesLabel5.setFont(new Font("My Boli", Font.PLAIN,tileSize));
-		yCoordinatesPanel5.add(yCoordinatesLabel5);
-
-		JPanel yCoordinatesPanel6 = new JPanel();
-		yCoordinatesPanel6.setBounds(8*tileSize,(2*tileSize),tileSize,tileSize);
-		yCoordinatesPanel6.setBackground(new Color(230,248,220));
-		JLabel yCoordinatesLabel6 = new JLabel();
-		yCoordinatesLabel6.setText("6");
-		yCoordinatesLabel6.setFont(new Font("My Boli", Font.PLAIN,tileSize));
-		yCoordinatesPanel6.add(yCoordinatesLabel6);
-
-		JPanel yCoordinatesPanel7 = new JPanel();
-		yCoordinatesPanel7.setBounds(8*tileSize,(1*tileSize),tileSize,tileSize);
-		yCoordinatesPanel7.setBackground(new Color(230,248,220));
-		JLabel yCoordinatesLabel7 = new JLabel();
-		yCoordinatesLabel7.setText("7");
-		yCoordinatesLabel7.setFont(new Font("My Boli", Font.PLAIN,tileSize));
-		yCoordinatesPanel7.add(yCoordinatesLabel7);
-
-		JPanel yCoordinatesPanel8 = new JPanel();
-		yCoordinatesPanel8.setBounds(8*tileSize,(0*tileSize),tileSize,tileSize);
-		yCoordinatesPanel8.setBackground(new Color(230,248,220));
-		JLabel yCoordinatesLabel8 = new JLabel();
-		yCoordinatesLabel8.setText("8");
-		yCoordinatesLabel8.setFont(new Font("My Boli", Font.PLAIN,tileSize));
-		yCoordinatesPanel8.add(yCoordinatesLabel8);
-
-		
 		//Frame
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLayout(null);
-		frame.setSize(1000,1000);
+		frame.setSize(frameWidth(), frameHeight());
 		frame.setVisible(true);
 		frame.getContentPane().setBackground(new Color(230,248,220));
-		frame.add(newGame);
-		frame.add(saveGame);
-		frame.add(loadGame);
+		frame.add(newGameButton);
+		frame.add(loadGameButton);
 		frame.add(gamelog);
+
         for(JButton square : board) {
             frame.add(square);
         }
-		
-		frame.add(yCoordinatesPanel1);
-		frame.add(yCoordinatesPanel2);
-		frame.add(yCoordinatesPanel3);
-		frame.add(yCoordinatesPanel4);
-		frame.add(yCoordinatesPanel5);
-		frame.add(yCoordinatesPanel6);
-		frame.add(yCoordinatesPanel7);
-		frame.add(yCoordinatesPanel8);
-		frame.add(xCoordinatesPanel);
 
-		newGame.addActionListener(e -> newGame(frame));
-		resign.addActionListener(e -> game.resign());
-		saveGame.addActionListener(e -> save(frame));
-		loadGame.addActionListener(e -> load(frame));
-        saveGameDuringGame.addActionListener(e -> saveDuringGame(frame));
+        JPanel boardBG = new JPanel();
+        placeOnBoard(boardBG, -tileSize/2, -tileSize/2, tileSize*9, tileSize*9);
+        boardBG.setBackground(squareBg(Piece.Color.WHITE));
+        frame.add(boardBG);
+		
+		newGameButton.addActionListener(e -> onClickNewGame(frame));
+		resignButton.addActionListener(e -> game.resign());
+		saveGameButton.addActionListener(e -> onClickSave(frame));
+		loadGameButton.addActionListener(e -> onClickLoad(frame));
+        saveGameDuringGameButton.addActionListener(e -> onClickSaveDuringGame(frame));
+
+        frame.repaint();
 	}
 
-    protected void newGame(JFrame frame) {
+    protected int buttonY(int pos) {
+        return boardYOffset+buttonOffset+pos*tileSize;
+    }
+
+    protected int buttonHeight() {
+        return tileSize-2*buttonOffset;
+    }
+
+    protected int boardWidth() {
+        return tileSize * 8 + 2 * boardXOffset;
+    }
+
+    protected int frameWidth() {
+        return tileSize * 8 + 3 * boardXOffset - tileSize/2 + sideBarWidth;
+    }
+
+    protected int frameHeight() {
+        return tileSize * 8 + (int) (2.5 * (double) boardYOffset);
+    }
+
+    protected void placeOnBoard(Component c, int x, int y, int width, int height)
+    {
+        c.setBounds(x+boardXOffset, y+boardYOffset, width, height);
+    }
+
+    protected void onClickNewGame(JFrame frame) {
         Position position = fen.parse(
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
-            // "k7/7P/8/8/8/8/p7/7K w - - 0 0"
+            // "k1K5/8/2Q5/8/8/8/8/8 w - - 0 0"
+            // "kp5Q/8/8/8/8/8/8/K7 w - - 0 0"
             // "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
             // "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
             // "8/8/8/8/8/8/6b1/8 w KQkq - 1 6"
         );
 		
-        
-		
         this.game = new GameOfChess(position);
-        this.game.state().addObserver(new GameObserver());
+        this.game.state().addObserver(new GameObserver(this));
         this.game.start();
     }
 
-    protected void renderBoardState()
-    {
+    protected void renderBoardState() {
         for(int sq = Board.A1;sq <= Board.H8;sq++) {
             int piece = game.position.pieceAt(sq);
             String p = String.valueOf(pieceToChar.charAt(piece));
@@ -361,84 +345,81 @@ public class BoardUi extends JFrame implements ActionListener {
         }
     }
 
-	protected void save(JFrame frame)
-	{
-		frame.remove(saveGame);
-		frame.remove(loadalg);
-		frame.remove(loadpgm);
-		frame.add(savepgm);
-		frame.add(savealg);
-		frame.add(loadGame);
+	protected void onClickSave(JFrame frame) {
+		frame.remove(saveGameButton);
+		frame.remove(loadalgButton);
+		frame.remove(loadFenButton);
+		frame.add(saveFenButton);
+		frame.add(savealgButton);
+		frame.add(loadGameButton);
 		frame.revalidate(); 
 		frame.repaint();
 	}
 
-    protected void clearLog()
-    {
+    protected void clearLog() {
         gamelog.setText("");
     }
 
-    protected void log(String log) 
-    {
+    protected void log(String log) {
         gamelog.setText(
             gamelog.getText()+"\n"+log    
         );
     }
 
-    protected void saveDuringGame(JFrame frame)
-	{
-		frame.remove(saveGame);
-		frame.remove(loadalg);
-		frame.remove(loadpgm);
-		frame.add(savepgm);
-		frame.add(savealg);
+    protected void onClickSaveDuringGame(JFrame frame) {
+		frame.remove(saveGameButton);
+		frame.remove(loadalgButton);
+		frame.remove(loadFenButton);
+		frame.add(saveFenButton);
+		frame.add(savealgButton);
 		frame.revalidate(); 
 		frame.repaint();
 	}
 
-	protected void load(JFrame frame)
-	{
-		frame.remove(loadGame);
-		frame.remove(savealg);
-		frame.remove(savepgm);
-		frame.add(loadpgm);
-		frame.add(loadalg);
-		frame.add(saveGame);
+	protected void onClickLoad(JFrame frame) {
+		frame.remove(loadGameButton);
+		frame.remove(savealgButton);
+		frame.remove(saveFenButton);
+		frame.add(loadFenButton);
+		frame.add(loadalgButton);
+		frame.add(saveGameButton);
 		frame.revalidate(); 
 		frame.repaint();
 	}
 
-	protected void parseFen()
-	{
+	protected void parseFen() {
 		this.fenString = gamelog.getText();
 		Position position = fen.parse(fenString);
 		this.game = new GameOfChess(position);
-        this.game.state().addObserver(new GameObserver());
+        this.game.state().addObserver(new GameObserver(this));
         this.game.start();
 	}
 
-	protected void parseAlg()
-	{
+	protected void parseAlg() {
 		this.algString = gamelog.getText();
 		Position position = alg.parse(algString);
 		System.out.println(position);
 		this.game = new GameOfChess(position);
-        this.game.state().addObserver(new GameObserver());
+        this.game.state().addObserver(new GameObserver(this));
         this.game.start();
 	}
 
-	protected void createFen()
-	{
-		
+	protected void onClickSaveFen() {
+		String fenString = fen.compose(game.position);
+        log(fenString);
 	}
 
-	protected void createAlg()
-	{
-
+	protected void createAlg() {
+        // TODO
 	}
 
-
+    /**
+     * Select the given square.
+     */
     protected void selectedSquare(int square) {
+        if(game == null) return;
+        if(game.outcome().termination != null) return;
+
         if(canMakeMove()) {
             makeMoveTo(square);
         } else {
@@ -446,8 +427,10 @@ public class BoardUi extends JFrame implements ActionListener {
         }        
     }
 
-    protected void highlightMoves(int square)
-    {
+    /**
+     * Highlight all moves that can be made from the given square.
+     */
+    protected void highlightMoves(int square) {
         moves = game.position.generateLegalMoves(Board.BB_SQUARES[square]);
         selectedSquare = square;
         for(int sq=Board.A1;sq<=Board.H8;sq++) {
@@ -461,6 +444,9 @@ public class BoardUi extends JFrame implements ActionListener {
         }
     }
 
+    /**
+     * Make a move to the given square.
+     */
     protected void makeMoveTo(int square) {        
         if(this.selectedSquare == Board.SQUARE_NONE) {
             return;
@@ -477,42 +463,27 @@ public class BoardUi extends JFrame implements ActionListener {
         this.selectedSquare = Board.SQUARE_NONE;
     }
 
-    protected boolean canMakeMove()
-    {
+    /**
+     * Determine if a move can be made.
+     * @return
+     */
+    protected boolean canMakeMove() {
         return this.moves.size() > 0;
     }
 
+    /**
+     * Clear board square highlights.
+     */
     protected void clearHighlights() {
         for(int sq=Board.A1;sq<=Board.H8;sq++) {
             this.board[sq].setBackground(squareBg(sq));
         }
     }
 
+    /**
+     * Get the square background for the given square.
+     */
     protected Color squareBg(int square) {
         return Board.isWhite(square) ? new Color(105, 114, 129) : new Color(79, 86, 97);
-    }
-
-    protected void gameLog(int tileSize, JFrame frame)
-    {
-        frame.add(resign);
-        frame.remove(newGame);
-        frame.remove(loadGame);
-        frame.remove(loadalg);
-        frame.remove(loadpgm);
-        frame.remove(savealg);
-        frame.remove(savepgm);
-        frame.remove(saveGame);
-        frame.add(saveGameDuringGame);
-        frame.revalidate();
-        frame.repaint();
-    }
-
-    /**
-     * Invoked when an action occurs.
-     * @param e the event to be processed
-     */
-    public void actionPerformed(ActionEvent e)
-    {
-        
     }
 }

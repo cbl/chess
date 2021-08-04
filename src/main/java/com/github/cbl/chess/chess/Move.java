@@ -79,4 +79,12 @@ public class Move {
     {
         return this.promotion != 0;
     }
+
+    /**
+     * Get the moves distance.
+     */
+    public int distance()
+    {
+        return Board.distance(from, to);
+    }
 }

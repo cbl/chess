@@ -164,7 +164,7 @@ public class Position implements Cloneable {
         // TODO: EP Skewered
         
         return (this.pinned[this.sideToMove] & Board.BB_SQUARES[move.from]) == 0 
-            || (BBIndex.streched[move.from][move.to] & Board.BB_SQUARES[kingSquare]) != 0;
+            || (BBIndex.STRECHED[move.from][move.to] & Board.BB_SQUARES[kingSquare]) != 0;
     }
 
     /**
@@ -211,7 +211,7 @@ public class Position implements Cloneable {
         long blockers = 0;
 
         for(int slidingPiece : Board.toReversedList(slidingPieces)) {
-            long attack = BBIndex.between[kingSquare][slidingPiece] & this.occupied();
+            long attack = BBIndex.BETWEEN[kingSquare][slidingPiece] & this.occupied();
 
             // Add to blockers when exactly one peace is between the sliding piece 
             // and the king.
@@ -237,6 +237,66 @@ public class Position implements Cloneable {
         if(!this.isCheck()) return false;
 
         return this.generateLegalMoves(Bitboard.ALL).isEmpty();
+    }
+
+    /**
+     * Determines whether it is stalemate.
+     */
+    public boolean isStalemate()
+    {
+        if(this.isCheck()) return false;
+
+        return this.generateLegalMoves(Bitboard.ALL).isEmpty();
+    }
+
+    /**
+     * Determine whether the game has ended due to insufficient material.
+     * 
+     * Insufficient material occures when it is not possible for any side to 
+     * force a checkmate.
+     * 
+     * This can happen when:
+     * 1. There are only two kings.
+     * 2. We only have a knight AND:
+     *      2.1. We do not have any other pieces, including more than one knight.
+     *      2.2. The opponent does not have pawns, knights, bishops or rooks.
+     * 3. We only have a bishop:
+     *      3.1. We do not have any other pieces, including bishops of the 
+     *           opposite color.
+     *      3.2. The opponent does not have bishops of the opposite color, pawns 
+     *           or knights.
+     * 
+     * @see https://support.chess.com/article/128-what-does-insufficient-mating-material-mean
+     */
+    public boolean isInsufficientMaterial()
+    {
+        if(occupied() == kings()) return true;
+
+        int[] colors = {Piece.Color.WHITE, Piece.Color.BLACK};
+
+        for(int color : colors) {
+            if((occupied(color) & (pawns() | rooks() | queens())) != Bitboard.EMPTY) {
+                return false;
+            }
+            
+            if((occupied(color) & knights()) != Bitboard.EMPTY) {
+                if(Long.bitCount(occupied(color)) > 2 
+                    || (occupied(Piece.Color.opposite(color)) & ~kings() & ~queens()) != Bitboard.EMPTY) {
+                    return false;
+                }
+            }
+
+            if((occupied(color) & bishops()) != Bitboard.EMPTY) {
+                boolean isOfSameColor = 
+                    (bishops() & Bitboard.DARK_SQUARES) == Bitboard.EMPTY || 
+                    (bishops() & Bitboard.LIGHT_SQUARES) == Bitboard.EMPTY;
+                if(isOfSameColor || pawns() != Bitboard.EMPTY || knights() != Bitboard.EMPTY) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -320,7 +380,7 @@ public class Position implements Cloneable {
         for(int from : Board.toReversedList(pawns)) {
             long attacks = (
                 this.attacks(from) & 
-                this.occupied(this.themColor()) &
+                (this.occupied(this.themColor()) | epSquare) & 
                 toMask
             );
 
@@ -386,8 +446,8 @@ public class Position implements Cloneable {
         int epSquare = Board.fromBB(this.epSquare);
         long capturers = (
             this.pawns(this.sideToMove) & fromMask &
-            BBIndex.pawns[this.themColor()][epSquare] &
-            BBIndex.ranks[rank]
+            BBIndex.PAWN_ATTACKS[this.themColor()][epSquare] &
+            BBIndex.RANKS[rank]
         );
 
         for(int capturer : Board.toReversedList(capturers))
@@ -415,8 +475,8 @@ public class Position implements Cloneable {
         long castlingRights = this.castlingRightsFor(this.sideToMove);
         long castleRight = Bitboard.shiftRight(bbKing, 2) & toMask;
         long castleLeft = Bitboard.shiftLeft(bbKing, 2) & toMask;
-        long blockersRight = BBIndex.between[kingSquare][rightRookSquare] & ourPieces;
-        long blockersLeft = BBIndex.between[kingSquare][leftRookSquare] & ourPieces;
+        long blockersRight = BBIndex.BETWEEN[kingSquare][rightRookSquare] & ourPieces;
+        long blockersLeft = BBIndex.BETWEEN[kingSquare][leftRookSquare] & ourPieces;
 
         if((castleLeft & castlingRights) != 0 && castleLeft != 0 && blockersRight == 0)
             moveList.add(new Move(kingSquare, Board.fromBB(castleLeft)));
@@ -478,12 +538,12 @@ public class Position implements Cloneable {
         int kingSquare = Board.fromBB(king);
         
         for(int checker : Board.toList(checkers)) {
-            attacked |= BBIndex.streched[kingSquare][checker] & ~Board.BB_SQUARES[checker];
+            attacked |= BBIndex.STRECHED[kingSquare][checker] & ~Board.BB_SQUARES[checker];
         }
 
         // Generate king eveasions.
         if((king & fromMask) != 0) {
-            for(int to : Board.toReversedList(BBIndex.pseudo[Piece.KING][kingSquare] & ~this.occupied(this.sideToMove))) {
+            for(int to : Board.toReversedList(BBIndex.ATTACKS[Piece.KING][kingSquare] & ~this.occupied(this.sideToMove))) {
                 evasions.add(new Move(kingSquare, to));
             }
 
@@ -494,7 +554,7 @@ public class Position implements Cloneable {
         // giving check.
         int checker = Bitboard.lsb(checkers);
         if(Board.BB_SQUARES[checker] == checkers) {
-            long target = BBIndex.between[kingSquare][checker] | checkers;
+            long target = BBIndex.BETWEEN[kingSquare][checker] | checkers;
 
             // Moves that capture the checker:
             evasions.addAll(this.generatePseudoLegalMoves(fromMask, target & toMask));
@@ -511,12 +571,12 @@ public class Position implements Cloneable {
         long queensAndBishops = this.queens() | this.bishops();
 
         long attackers = (
-            (BBIndex.pseudo[Piece.KING][square] & this.kings()) |
-            (BBIndex.pseudo[Piece.KNIGHT][square] & this.knights()) |
+            (BBIndex.ATTACKS[Piece.KING][square] & this.kings()) |
+            (BBIndex.ATTACKS[Piece.KNIGHT][square] & this.knights()) |
             (BBIndex.BISHOP_ATTACKS[square].get(diagPieces) & queensAndBishops) |
             (BBIndex.FILE_ATTACKS[square].get(filePieces) & queensAndRooks) |
             (BBIndex.RANK_ATTACKS[square].get(rankPieces) & queensAndRooks) |
-            (BBIndex.pawns[Piece.Color.opposite(color)][square] & this.pawns()));
+            (BBIndex.PAWN_ATTACKS[Piece.Color.opposite(color)][square] & this.pawns()));
 
         return attackers & this.piecesByColor[color];
     }
@@ -530,11 +590,11 @@ public class Position implements Cloneable {
         int pieceType = Piece.getType(piece);
 
         if(pieceType == Piece.PAWN) {
-            return BBIndex.pawns[Piece.getColor(piece)][square];
+            return BBIndex.PAWN_ATTACKS[Piece.getColor(piece)][square];
         }
 
         if(pieceType == Piece.KNIGHT || pieceType == Piece.KING) {
-            return BBIndex.pseudo[pieceType][square];
+            return BBIndex.ATTACKS[pieceType][square];
         }
 
         long attacks = 0;
@@ -586,6 +646,11 @@ public class Position implements Cloneable {
         int toFile = Board.getFile(move.to);
         int fromFile = Board.getFile(move.from);
         int fromRank = Board.getRank(move.from);
+
+        // Do en passant
+        if(epSquare != Bitboard.EMPTY && Board.BB_SQUARES[move.to] == epSquare) {
+            removePieceAt(move.from + (Board.getRank(move.to) - Board.getRank(move.from)));
+        }
         
         // Reset En Passant square
         this.epSquare = 0;
@@ -594,7 +659,7 @@ public class Position implements Cloneable {
         if(move.isZeroing(this)) this.halfmoveCount = 0;
         else this.halfmoveCount++;
 
-        int pieceType = this.removePieceAt(move.from);
+        int pieceType = removePieceAt(move.from);
 
         // Set piece type when move is promotion.
         if(move.isPromotion()) pieceType = move.promotion;
@@ -603,11 +668,11 @@ public class Position implements Cloneable {
         this.setPieceAt(move.to, pieceType, this.sideToMove);
 
         // Do castling.
-        if(pieceType == Piece.KING && toFile == Board.FILE_C) {
+        if(pieceType == Piece.KING && move.distance() == 2 && toFile == Board.FILE_C) {
             int rookSquare =  Board.square(fromRank, Board.FILE_A);
             this.removePieceAt(rookSquare);
             this.setPieceAt(rookSquare, Piece.ROOK, this.sideToMove);
-        } else if(pieceType == Piece.KING && toFile == Board.FILE_G) {
+        } else if(pieceType == Piece.KING && move.distance() == 2 && toFile == Board.FILE_G) {
             int rookSquare =  Board.square(fromRank, Board.FILE_H);
             this.removePieceAt(rookSquare);
             this.setPieceAt(rookSquare, Piece.ROOK, this.sideToMove);
@@ -626,12 +691,12 @@ public class Position implements Cloneable {
 
         // Clear square above pawn when en passant move was made.
         if((Board.BB_SQUARES[move.to] & this.epSquare) != 0) {
-            this.removePieceAt(move.to - Move.pawn(this.sideToMove));
+            removePieceAt(move.to - Move.pawn(this.sideToMove));
         }
 
         // Remember possible En Passant for next move.
         if(pieceType == Piece.PAWN && Math.abs(Board.getRank(move.from)-Board.getRank(move.to)) == 2) {
-            this.epSquare = Board.BB_SQUARES[move.from + Move.pawn(this.sideToMove)];
+            this.epSquare = Board.BB_SQUARES[move.from + Move.pawn(sideToMove)];
         }
 
         // Push move to the stack and increase index.
@@ -647,7 +712,6 @@ public class Position implements Cloneable {
 
         // Swap side to move.
         this.sideToMove = Piece.Color.opposite(this.sideToMove);
-        
     }
 
     /**

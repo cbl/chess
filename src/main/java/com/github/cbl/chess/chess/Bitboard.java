@@ -6,9 +6,9 @@ import java.util.List;
 public class Bitboard {
     public static final long ALL = -1;
     public static final long EMPTY = 0;
-    public static final long WHITE_SQUARES = 0x55AA55AA55AA55AAL;
-    public static final long BLACK_SQUARES = 0xAA55AA55AA55AA55L;
-    public static final long ALL_SQUARES = WHITE_SQUARES | BLACK_SQUARES;
+    public static final long LIGHT_SQUARES = 0x55AA55AA55AA55AAL;
+    public static final long DARK_SQUARES = 0xAA55AA55AA55AA55L;
+    public static final long ALL_SQUARES = LIGHT_SQUARES | DARK_SQUARES;
 
     public static final long FILE_A = 0x0101010101010101L;
     public static final long FILE_B = FILE_A << 1;

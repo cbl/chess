@@ -87,6 +87,6 @@ public class FenNotation implements Notation {
      */
     public String compose(Position position)
     {
-        return "";
+        return "lol";
     }
 }
