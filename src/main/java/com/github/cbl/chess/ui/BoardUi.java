@@ -98,6 +98,8 @@ public class BoardUi extends JFrame {
             } else if(event == StateMachine.Event.TransitionedTo) {
                 handleTransitionedTo((GameOfChess.State) v);
             }
+
+            updateGameLog();
         }
 
         void handleTransition(GameOfChess.Transition transition) {
@@ -488,5 +490,15 @@ public class BoardUi extends JFrame {
      */
     protected Color squareBg(int square) {
         return Board.isWhite(square) ? lightSquareColor : darkSquareColor;
+    }
+
+    protected void updateGameLog()
+    {
+        String str = "";
+        for(Move move : game.position.moves) {
+            if(move == null) break;
+            str += move.toString()+"\n";
+        }
+        gamelog.setText(str);
     }
 }

@@ -17,7 +17,7 @@ public class Position implements Cloneable {
     public long checkers = 0;
 
     protected int moveIndex = 0;
-    protected Move[] moves = new Move[Move.MAX_MOVES_COUNT];
+    public Move[] moves = new Move[Move.MAX_MOVES_COUNT];
     protected long[] piecesByType = new long[7];
     protected long[] piecesByColor = new long[3];
     protected int[] pieces = new int[Board.SQUARE_COUNT];
