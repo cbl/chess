@@ -1,5 +1,7 @@
 package com.github.cbl.chess.chess;
 
+import com.github.cbl.chess.notations.FenNotation;
+
 public class Move {
     public static final int UP = 8;
     public static final int DOWN = -UP;
@@ -77,7 +79,7 @@ public class Move {
      */
     public boolean isPromotion()
     {
-        return this.promotion != 0;
+        return promotion != 0;
     }
 
     /**
@@ -86,5 +88,19 @@ public class Move {
     public int distance()
     {
         return Board.distance(from, to);
+    }
+
+    /**
+     * Get the string representation of the move.
+     */
+    public String toString()
+    {
+        String str = Board.squareToString(from) + Board.squareToString(to);
+
+        if(isPromotion()) {
+            return str + FenNotation.pieceToChar.charAt(promotion);
+        }
+
+        return str;
     }
 }

@@ -80,8 +80,6 @@ public class Board {
     public static final int SQUARE_COUNT = 64;
     public static final int SQUARE_NONE = 64;
 
-    
-
     public static final int FILE_A = 0;
     public static final int FILE_B = 1;
     public static final int FILE_C = 2;
@@ -114,6 +112,9 @@ public class Board {
     };
 
     public static final long[] BB_SQUARES = generateBBSquares();
+
+    public static final String[] FILE_NAMES = {"a", "b", "c", "d", "e", "f", "g", "h"};
+    public static final String[] RANK_NAMES = {"1", "2", "3", "4", "5", "6", "7", "8"};
 
     public static class Block {
         public static final int SQUARE_SIZE = 6;
@@ -240,5 +241,13 @@ public class Board {
         }
 
         return squares;
+    }
+
+    /**
+     * Get the string reprensentation of a square.
+     */
+    public static String squareToString(int square)
+    {
+        return FILE_NAMES[getFile(square)] + RANK_NAMES[getRank(square)];
     }
 }
