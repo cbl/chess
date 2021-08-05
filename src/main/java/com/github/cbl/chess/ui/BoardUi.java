@@ -49,25 +49,19 @@ public class BoardUi extends JFrame {
 	JButton backButton;
 	JButton forwardButton;
 	JButton loadGameButton;
-	JButton saveGameButton;
-    JButton saveGameDuringGameButton;
-	JButton saveFenButton;
-	JButton savealgButton;
 	JButton loadFenButton;
-	JButton loadalgButton;
     JButton[] gameButtons = {
-        resignButton, backButton, forwardButton, saveGameButton, 
-        saveGameDuringGameButton, saveFenButton, savealgButton
+        resignButton, backButton, forwardButton
     };
     JButton[] initialGameButtons = {
-        resignButton, saveGameButton
+        resignButton
     };
     JButton[] beforeGameButtons = {
-        newGameButton, loadGameButton, loadFenButton, loadalgButton
+        newGameButton, loadGameButton
     };
 
     JFrame frame = new JFrame();
-	JTextArea gamelog;
+	JTextArea gameLog;
     JTextArea input;
     int selectedSquare = Board.SQUARE_NONE;
 	String fenString;
@@ -152,84 +146,143 @@ public class BoardUi extends JFrame {
 	public BoardUi()
 	{
 		//Buttons
-		newGameButton = new JButton();
+		initNewGameButton();
+        initResignButton();
+		initLoadGameButton();
+		initLoadFenButton();
+
+        // Text fields
+		initGameLog();
+        initInput();
+
+        // Board
+        initBoard();
+
+        // Frame
+        initFrame();
+	}
+
+    protected void initFrame() {
+		frame.setResizable(false);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLayout(null);
+		frame.setSize(frameWidth(), frameHeight());
+		frame.setVisible(true);
+		frame.getContentPane().setBackground(bgColor);
+
+		frame.add(newGameButton);
+		frame.add(loadGameButton);
+		frame.add(gameLog);
+
+        for(JButton square : board) {
+            frame.add(square);
+        }
+
+        // Apply board background.
+        JPanel boardBG = new JPanel();
+        placeOnBoard(boardBG, -sqSize/2, -sqSize/2, sqSize*9, sqSize*9);
+        boardBG.setBackground(squareBg(Piece.Color.WHITE));
+        frame.add(boardBG);
+        frame.repaint();
+    }
+
+    protected void initNewGameButton()
+    {
+        newGameButton = makeButton("New Game");
 		newGameButton.setBounds(boardWidth(), buttonY(0), sideBarWidth, buttonHeight());
-		newGameButton.setText("New Game");
 		newGameButton.setFocusable(false);
-		newGameButton.setForeground(btnTextColor);
-		newGameButton.setBackground(lightSquareColor);
-		
-		resignButton = new JButton();
+
+        newGameButton.addActionListener(e -> {
+            Position pos = fen.parse(
+                "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
+                // "k1K5/8/2Q5/8/8/8/8/8 w - - 0 0"
+                // "kp5Q/8/8/8/8/8/8/K7 w - - 0 0"
+                // "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+                // "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
+                // "8/8/8/8/8/8/6b1/8 w KQkq - 1 6"
+            );
+            
+            startGame(pos);
+        });
+    }
+
+    protected void startGame(Position pos)
+    {
+        game = new GameOfChess(pos);
+        game.state().addObserver(new GameObserver(this));
+        game.start();
+    }
+
+    protected void initResignButton() {
+        resignButton = makeButton("Resign");
 		resignButton.setBounds(boardWidth(), buttonY(0), sideBarWidth/2-buttonOffset, buttonHeight());
-		resignButton.setText("Resign");
 		resignButton.setFocusable(false);
-		resignButton.setForeground(Color.LIGHT_GRAY);
-		resignButton.setBackground(Color.black);
-		
-		loadGameButton = new JButton();
-		loadGameButton.setBounds(boardWidth(), buttonY(1), sideBarWidth/2-buttonOffset, buttonHeight());
-		loadGameButton.setText("Import Game");
+
+        resignButton.addActionListener(e -> game.resign());
+    }
+
+    protected void initLoadGameButton() {
+        loadGameButton = makeButton("Import Game");
+		loadGameButton.setBounds(boardWidth(), buttonY(1), sideBarWidth, buttonHeight());
 		loadGameButton.setFocusable(false);
-		loadGameButton.setForeground(Color.LIGHT_GRAY);
-		loadGameButton.setBackground(Color.black);
+		
+        loadGameButton.addActionListener(e -> {
+            frame.add(input);
+            frame.add(loadFenButton);
+            frame.remove(loadGameButton);
+            frame.revalidate(); 
+            frame.repaint();
+        });
+    }
 
-		saveGameButton = new JButton();
-		saveGameButton.setBounds(boardWidth(), buttonY(1), sideBarWidth/2-buttonOffset, buttonHeight());
-		saveGameButton.setText("Export Game");
-		saveGameButton.setFocusable(false);
-		saveGameButton.setForeground(Color.LIGHT_GRAY);
-		saveGameButton.setBackground(Color.black);
-
-        saveGameDuringGameButton = new JButton();
-		saveGameDuringGameButton.setBounds(boardWidth(), buttonY(1), sideBarWidth, buttonHeight());
-		saveGameDuringGameButton.setText("Export Game");
-		saveGameDuringGameButton.setFocusable(false);
-		saveGameDuringGameButton.setForeground(Color.LIGHT_GRAY);
-		saveGameDuringGameButton.setBackground(Color.black);
-
-		loadFenButton = new JButton();
-		loadFenButton.setBounds(boardWidth(), buttonY(2), sideBarWidth/2-buttonOffset, buttonHeight());
-		loadFenButton.setText("Import FEN");
+    protected void initLoadFenButton() {
+        loadFenButton = makeButton("Import");
+		loadFenButton.setBounds(boardWidth(), buttonY(2), sideBarWidth, buttonHeight());
 		loadFenButton.setFocusable(false);
-		loadFenButton.setForeground(Color.LIGHT_GRAY);
-		loadFenButton.setBackground(Color.black);
-		loadFenButton.addActionListener(e -> parseFen());
 		
-		loadalgButton = new JButton();
-		loadalgButton.setBounds(boardWidth()+sideBarWidth/2, buttonY(2), sideBarWidth/2-buttonOffset, buttonHeight());
-		loadalgButton.setText("Import ALG");
-		loadalgButton.setFocusable(false);
-		loadalgButton.setForeground(Color.LIGHT_GRAY);
-		loadalgButton.setBackground(Color.black);
-		loadalgButton.addActionListener(e -> parseAlg());
+        loadFenButton.addActionListener(e -> {
+            String fenString = input.getText();
+            startGame(fen.parse(fenString));
+            frame.remove(input);
+            frame.remove(loadFenButton);
+            frame.revalidate(); 
+            frame.repaint();
+        });
+    }
 
-		saveFenButton = new JButton();
-		saveFenButton.setBounds(boardWidth(), buttonY(2), sideBarWidth/2-buttonOffset, buttonHeight());
-		saveFenButton.setText("Export as FEN");
-		saveFenButton.setFocusable(false);
-		saveFenButton.setForeground(Color.LIGHT_GRAY);
-		saveFenButton.setBackground(Color.black);
-		saveFenButton.addActionListener(e -> onClickSaveFen());
-		
-		savealgButton = new JButton();
-		savealgButton.setBounds(boardWidth()+sideBarWidth/2, buttonY(2), sideBarWidth/2-buttonOffset, buttonHeight());
-		savealgButton.setText("Export as ALG");
-		savealgButton.setFocusable(false);
-		savealgButton.setForeground(Color.LIGHT_GRAY);
-		savealgButton.setBackground(Color.black);
-		savealgButton.addActionListener(e -> createAlg());
+    protected JButton makeButton(String text)
+    {
+        JButton btn = new JButton();
+        btn.setText(text);
+		btn.setForeground(btnTextColor);
+		btn.setBackground(lightSquareColor);
+        return btn;
+    }
 
-		gamelog = new JTextArea();
-		gamelog.setBounds(boardWidth(), buttonY(3), sideBarWidth, 4*sqSize);
+    protected void initGameLog() {
+        gameLog = new JTextArea();
+		gameLog.setBounds(boardWidth(), buttonY(4), sideBarWidth, 4*sqSize);
+        gameLog.setEditable(false);
 		Border border = BorderFactory.createLineBorder(Color.BLACK, 4);
-		gamelog.setBorder(border);
+		gameLog.setBorder(border);
+    }
 
+    protected void initInput() {
         input = new JTextArea();
-		input.setBounds(boardWidth(), buttonY(7), sideBarWidth, sqSize);
+		input.setBounds(boardWidth(), buttonY(3), sideBarWidth, sqSize);
 		Border border2 = BorderFactory.createLineBorder(Color.BLACK, 4);
 		input.setBorder(border2);
+    }
 
+    protected void initBoard() {
+        initBoardSquares();
+        initBoardAxisLabels();
+    }
+
+    protected void initBoardSquares() {
+        // For each row...
         for (int r = 7; r >= 0; r--) {
+            // For each file...
             for (int f = 0; f <= 7; f++) {
                 int square = Board.square(r, f);
                 JButton btn = new JButton();
@@ -244,8 +297,10 @@ public class BoardUi extends JFrame {
                 board[square] = btn;
             }
         }
+    }
 
-		//Axis Labels
+    protected void initBoardAxisLabels() {
+        //Axis Labels
         for(int i = 7; i >= 0; i--) {
             JPanel yCoordinateP = new JPanel();
             placeOnBoard(yCoordinateP, 8*sqSize, i*sqSize+(sqSize/3), sqSize/3, sqSize);
@@ -267,36 +322,7 @@ public class BoardUi extends JFrame {
             xCoordinatesP.add(xCoordinatesL);
             frame.add(xCoordinatesP);
         }
-
-		//Frame
-		frame.setResizable(false);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setLayout(null);
-		frame.setSize(frameWidth(), frameHeight());
-		frame.setVisible(true);
-		frame.getContentPane().setBackground(bgColor);
-		frame.add(newGameButton);
-		frame.add(loadGameButton);
-		frame.add(gamelog);
-        frame.add(input);
-
-        for(JButton square : board) {
-            frame.add(square);
-        }
-
-        JPanel boardBG = new JPanel();
-        placeOnBoard(boardBG, -sqSize/2, -sqSize/2, sqSize*9, sqSize*9);
-        boardBG.setBackground(squareBg(Piece.Color.WHITE));
-        frame.add(boardBG);
-		
-		newGameButton.addActionListener(e -> onClickNewGame(frame));
-		resignButton.addActionListener(e -> game.resign());
-		saveGameButton.addActionListener(e -> onClickSave(frame));
-		loadGameButton.addActionListener(e -> onClickLoad(frame));
-        saveGameDuringGameButton.addActionListener(e -> onClickSaveDuringGame(frame));
-
-        frame.repaint();
-	}
+    }
 
     protected int buttonY(int pos) {
         return boardYOffset+buttonOffset+pos*sqSize;
@@ -318,24 +344,8 @@ public class BoardUi extends JFrame {
         return sqSize * 8 + (int) (2.5 * (double) boardYOffset);
     }
 
-    protected void placeOnBoard(Component c, int x, int y, int width, int height)
-    {
+    protected void placeOnBoard(Component c, int x, int y, int width, int height) {
         c.setBounds(x+boardXOffset, y+boardYOffset, width, height);
-    }
-
-    protected void onClickNewGame(JFrame frame) {
-        Position position = fen.parse(
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
-            // "k1K5/8/2Q5/8/8/8/8/8 w - - 0 0"
-            // "kp5Q/8/8/8/8/8/8/K7 w - - 0 0"
-            // "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
-            // "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
-            // "8/8/8/8/8/8/6b1/8 w KQkq - 1 6"
-        );
-		
-        this.game = new GameOfChess(position);
-        this.game.state().addObserver(new GameObserver(this));
-        this.game.start();
     }
 
     protected void renderBoardState() {
@@ -349,43 +359,22 @@ public class BoardUi extends JFrame {
     }
 
 	protected void onClickSave(JFrame frame) {
-		frame.remove(saveGameButton);
-		frame.remove(loadalgButton);
-		frame.remove(loadFenButton);
-		frame.add(saveFenButton);
-		frame.add(savealgButton);
 		frame.add(loadGameButton);
 		frame.revalidate(); 
 		frame.repaint();
 	}
 
     protected void clearLog() {
-        gamelog.setText("");
+        gameLog.setText("");
     }
 
     protected void log(String log) {
-        gamelog.setText(
-            gamelog.getText()+"\n"+log    
+        gameLog.setText(
+            gameLog.getText()+"\n"+log    
         );
     }
 
     protected void onClickSaveDuringGame(JFrame frame) {
-		frame.remove(saveGameButton);
-		frame.remove(loadalgButton);
-		frame.remove(loadFenButton);
-		frame.add(saveFenButton);
-		frame.add(savealgButton);
-		frame.revalidate(); 
-		frame.repaint();
-	}
-
-	protected void onClickLoad(JFrame frame) {
-		frame.remove(loadGameButton);
-		frame.remove(savealgButton);
-		frame.remove(saveFenButton);
-		frame.add(loadFenButton);
-		frame.add(loadalgButton);
-		frame.add(saveGameButton);
 		frame.revalidate(); 
 		frame.repaint();
 	}
@@ -399,12 +388,12 @@ public class BoardUi extends JFrame {
 	}
 
 	protected void parseAlg() {
-		this.algString = gamelog.getText();
+		this.algString = gameLog.getText();
 		Position position = alg.parse(algString);
 		System.out.println(position);
-		this.game = new GameOfChess(position);
-        this.game.state().addObserver(new GameObserver(this));
-        this.game.start();
+		game = new GameOfChess(position);
+        game.state().addObserver(new GameObserver(this));
+        game.start();
 	}
 
 	protected void onClickSaveFen() {
@@ -493,8 +482,7 @@ public class BoardUi extends JFrame {
     /**
      * Update the gamelog.
      */
-    protected void updateGameLog()
-    {
+    protected void updateGameLog() {
         if(game == null) return;
         
         String str = "";
@@ -517,6 +505,6 @@ public class BoardUi extends JFrame {
             str += "Draw! ("+outcome.termination.name()+")";
         }
 
-        gamelog.setText(str);
+        gameLog.setText(str);
     }
 }
