@@ -220,9 +220,14 @@ public class BoardUi extends JFrame {
 		savealgButton.addActionListener(e -> createAlg());
 
 		gamelog = new JTextArea();
-		gamelog.setBounds(boardWidth(), buttonY(4), sideBarWidth, 4*sqSize);
+		gamelog.setBounds(boardWidth(), buttonY(3), sideBarWidth, 4*sqSize);
 		Border border = BorderFactory.createLineBorder(Color.BLACK, 4);
 		gamelog.setBorder(border);
+
+        input = new JTextArea();
+		input.setBounds(boardWidth(), buttonY(7), sideBarWidth, sqSize);
+		Border border2 = BorderFactory.createLineBorder(Color.BLACK, 4);
+		input.setBorder(border2);
 
         for (int r = 7; r >= 0; r--) {
             for (int f = 0; f <= 7; f++) {
@@ -273,6 +278,7 @@ public class BoardUi extends JFrame {
 		frame.add(newGameButton);
 		frame.add(loadGameButton);
 		frame.add(gamelog);
+        frame.add(input);
 
         for(JButton square : board) {
             frame.add(square);
@@ -385,7 +391,7 @@ public class BoardUi extends JFrame {
 	}
 
 	protected void parseFen() {
-		this.fenString = gamelog.getText();
+		this.fenString = input.getText();
 		Position position = fen.parse(fenString);
 		this.game = new GameOfChess(position);
         this.game.state().addObserver(new GameObserver(this));
