@@ -146,14 +146,6 @@ public class BoardUi extends JFrame {
                 if(button != null) BoardUi.this.frame.add(button);
             BoardUi.this.frame.revalidate(); 
             BoardUi.this.frame.repaint();
-            
-            GameOfChess.Outcome outcome = BoardUi.this.game.outcome();
-            if(outcome.winner != Piece.Color.NONE) {
-                String color = Piece.Color.toString(outcome.winner);
-                BoardUi.this.log(color+" won the game! ("+outcome.termination.name()+")");
-            } else if(outcome.termination != null) {
-                BoardUi.this.log("Draw! ("+outcome.termination.name()+")");
-            }
         }
     }
 	
@@ -492,13 +484,33 @@ public class BoardUi extends JFrame {
         return Board.isWhite(square) ? lightSquareColor : darkSquareColor;
     }
 
+    /**
+     * Update the gamelog.
+     */
     protected void updateGameLog()
     {
+        if(game == null) return;
+        
         String str = "";
+        int i = 2;
         for(Move move : game.position.moves) {
             if(move == null) break;
-            str += move.toString()+"\n";
+            if(i%2 == 0) str += Integer.toString(i/2) + ". ";
+            str += move.toString()+" ";
+            if(i%2 == 1) str += "\n";
+            i++;
         }
+
+        str += "\n";
+
+        GameOfChess.Outcome outcome = game.outcome();
+        if(outcome.winner != Piece.Color.NONE) {
+            String color = Piece.Color.toString(outcome.winner);
+            str += color+" won the game! ("+outcome.termination.name()+")";
+        } else if(outcome.termination != null) {
+            str += "Draw! ("+outcome.termination.name()+")";
+        }
+
         gamelog.setText(str);
     }
 }
