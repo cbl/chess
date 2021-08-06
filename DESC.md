@@ -4,7 +4,11 @@ Das Programm stellt eine virtuelles Schachbrett dar. Im folgenden wird der Funkt
 
 ### Funktionsumfang
 
-Es können Spiele gespielt werden. Beim Ziehen der Figuren werden nach dem Klicken auf eine Figur die legalen Zügen eingefärbt. Es können beliebige Boardpositionen in Form des FEN's geladen werden. Außerdem ist es Möglich das bestehende Spiel in Form eines FEN's zu exportieren. Nur legale Züge sind möglich.
+- Es können Spiele Mensch gegen Mensch gespielt werden. 
+- Beim Ziehen der Figuren werden nach dem Klicken auf eine Figur die legalen Zügen eingefärbt. 
+- Es können beliebige Boardpositionen in Form des FEN's geladen werden. 
+- Es ist es Möglich das bestehende Spiel in Form eines FEN's zu exportieren. 
+- Nur legale Züge sind möglich.
 
 ### Spiel Anleitung
 
@@ -49,7 +53,7 @@ Im vorigen Zug wurde der weiße Bauer von d2 nach d4 bewegt, somit könnte der s
 
 8/6bb/8/8/R1pP2k1/4P3/P7/K7 b - d3 0 0
 
-Der folgende FEN zeigt, dass der Zug möglich ist, wenn es keinen Turm auf a4 gibt:
+Der folgende FEN zeigt, dass der Zug möglich ist, wenn kein Turm auf a4 steht:
 
 8/6bb/8/8/2pP2k1/4P3/P7/K7 b - d3 0 0
 
