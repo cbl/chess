@@ -115,9 +115,31 @@ public class FenNotation implements Notation {
 
         sj.add(composeBoardFen(pos));
         sj.add(pos.sideToMove == Piece.Color.WHITE ? "w" : "b");
+        sj.add(composeCastlingRights(pos));
         sj.add(pos.epSquare == Bitboard.EMPTY ? "-" : Board.squareToString(Board.fromBB(pos.epSquare)));
 
         return sj.toString();
+    }
+
+    /**
+     * Compose the castling rights of the given position.
+     */
+    protected String composeCastlingRights(Position pos) {
+        String r = "";
+
+        long whiteKingSide = Bitboard.WHITE_SIDE & Bitboard.KING_SIDE;
+        long whiteQueenSide = Bitboard.WHITE_SIDE & Bitboard.QUEEN_SIDE;
+        long blackKingSide = Bitboard.BLACK_SIDE & Bitboard.KING_SIDE;
+        long blackQueenSide = Bitboard.BLACK_SIDE & Bitboard.QUEEN_SIDE;
+
+        if(whiteKingSide != Bitboard.EMPTY) r += "K";
+        if(whiteQueenSide != Bitboard.EMPTY) r += "Q";
+        if(blackKingSide != Bitboard.EMPTY) r += "k";
+        if(blackQueenSide != Bitboard.EMPTY) r += "q";
+
+        if(r == "") return "-";
+
+        return r;
     }
 
     /**

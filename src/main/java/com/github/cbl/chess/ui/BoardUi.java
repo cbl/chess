@@ -211,6 +211,7 @@ public class BoardUi extends JFrame {
 		
         loadFenButton.addActionListener(e -> {
             String fenString = input.getText();
+            System.out.println(fenString);
             startGame(fen.parse(fenString));
         });
     }
