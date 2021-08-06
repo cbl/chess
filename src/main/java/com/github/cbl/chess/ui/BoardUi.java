@@ -33,16 +33,24 @@ import com.github.cbl.chess.chess.Board;
 
 
 public class BoardUi extends JFrame {
+
+    // Labels
     char[] xAxisLabels = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
+
+    // Sizes
     int sqSize = 75;
     int boardXOffset = 50;
     int boardYOffset = 50;
     int sideBarWidth = 350;
     int buttonOffset = 5;
+
+    // Colors
     Color bgColor = new Color(27,38,44);
     Color lightSquareColor = new Color(105, 114, 129);
     Color darkSquareColor = new Color(79, 86, 97);
     Color btnTextColor = Color.BLACK;
+
+    // Components
     JPanel sideBar;
 	JButton newGameButton;
 	JButton resignButton;
@@ -50,86 +58,33 @@ public class BoardUi extends JFrame {
 	JButton forwardButton;
 	JButton loadGameButton;
 	JButton loadFenButton;
-    JButton[] gameButtons = {
-        resignButton, backButton, forwardButton
-    };
-    JButton[] initialGameButtons = {
-        resignButton
-    };
-    JButton[] beforeGameButtons = {
-        newGameButton, loadGameButton
-    };
-
+    JButton[] board = new JButton[Board.SQUARE_COUNT];
+    JButton[] gameButtons = { resignButton, backButton, forwardButton };
+    JButton[] initialGameButtons = { resignButton };
+    JButton[] beforeGameButtons = { newGameButton, loadGameButton};
     JFrame frame = new JFrame();
 	JTextArea gameLog;
     JTextArea input;
-    int selectedSquare = Board.SQUARE_NONE;
-	String fenString;
-	String algString;
 
+    // Chess
+    int selectedSquare = Board.SQUARE_NONE;
     private static Notation fen = new FenNotation();
-	private static Notation alg = new AlgebraicNotation();
     GameOfChess game;
     MoveList moves = new MoveList();
-	JButton[] board = new JButton[Board.SQUARE_COUNT];
-
     private static final String pieceToChar = " ♙♘♗♖♕♔  ♟♞♝♜♛♚ ";
 
     private class GameObserver extends Observer {
-        BoardUi ui;
-
-        GameObserver(BoardUi ui) {
-            this.ui = ui;
-        }
-
+        /**
+         * Handle any event emitted by the GameOfChess state.
+         */
         public void handle(Object e, Object v) {
-            StateMachine.Event event = (StateMachine.Event) e;
-
-            if(event == StateMachine.Event.Transition) {
-                handleTransition((GameOfChess.Transition) v);
-            } else if(event == StateMachine.Event.TransitionedFrom) {
-                handleTransitionedFrom((GameOfChess.State) v);
-            } else if(event == StateMachine.Event.TransitionedTo) {
-                handleTransitionedTo((GameOfChess.State) v);
-            }
-
             updateGameState();
-        }
-
-        void handleTransition(GameOfChess.Transition transition) {
-            BoardUi.this.renderBoardState();
-
-            if(transition == GameOfChess.Transition.Start) {
-                handleStartTransition();
-            } else if(transition == GameOfChess.Transition.Resign) {
-                handleResignTransition();
-            }
-        }
-
-        void handleTransitionedFrom(GameOfChess.State state) {
-            //
-        }
-
-        void handleTransitionedTo(GameOfChess.State state) {
-            if(state == GameOfChess.State.Over) {
-                handleOverState();
-            }
-        }
-
-        void handleResignTransition() {
-            String color = Piece.Color.toString(ui.game.position.sideToMove);
-            ui.log(color+" resigned the game.");
-        }
-
-        void handleStartTransition() {
-            //
-        }
-
-        void handleOverState() {
-            //
         }
     }
 	
+    /**
+     * Create a new BoardUi instance.
+     */
 	public BoardUi()
 	{
 		//Buttons
@@ -149,6 +104,9 @@ public class BoardUi extends JFrame {
         initFrame();
 	}
 
+    /**
+     * Initialize the main frame.
+     */
     protected void initFrame() {
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -173,6 +131,9 @@ public class BoardUi extends JFrame {
         frame.repaint();
     }
 
+    /**
+     * Initialize the "New Game" button.
+     */
     protected void initNewGameButton()
     {
         newGameButton = makeButton("New Game");
@@ -185,9 +146,12 @@ public class BoardUi extends JFrame {
         });
     }
 
+    /**
+     * Initialize the "Start Game" button.
+     */
     protected void startGame(Position pos) {
         game = new GameOfChess(pos);
-        game.state().addObserver(new GameObserver(this));
+        game.state().addObserver(new GameObserver());
         game.start();
 
         clearLog();
@@ -202,6 +166,9 @@ public class BoardUi extends JFrame {
         log("New game has started! ("+Piece.Color.toString(pos.sideToMove)+" to move)");
     }
 
+    /**
+     * Initialize the "Resign" button.
+     */
     protected void initResignButton() {
         resignButton = makeButton("Resign");
 		resignButton.setBounds(boardWidth(), buttonY(0), sideBarWidth, buttonHeight());
@@ -212,6 +179,9 @@ public class BoardUi extends JFrame {
         });
     }
 
+    /**
+     * Initialize the "Import Game" button.
+     */
     protected void initLoadGameButton() {
         loadGameButton = makeButton("Import Game");
 		loadGameButton.setBounds(boardWidth(), buttonY(1), sideBarWidth, buttonHeight());
@@ -231,6 +201,9 @@ public class BoardUi extends JFrame {
         });
     }
 
+    /**
+     * Initialize the "Import" button.
+     */
     protected void initLoadFenButton() {
         loadFenButton = makeButton("Import");
 		loadFenButton.setBounds(boardWidth(), buttonY(2), sideBarWidth, buttonHeight());
@@ -242,6 +215,9 @@ public class BoardUi extends JFrame {
         });
     }
 
+    /**
+     * Create a new button containing the given text.
+     */
     protected JButton makeButton(String text)
     {
         JButton btn = new JButton();
@@ -251,6 +227,9 @@ public class BoardUi extends JFrame {
         return btn;
     }
 
+    /**
+     * Initialize game log textarea.
+     */
     protected void initGameLog() {
         gameLog = new JTextArea();
 		gameLog.setBounds(boardWidth(), buttonY(4), sideBarWidth, 4*sqSize);
@@ -261,6 +240,9 @@ public class BoardUi extends JFrame {
 		gameLog.setBorder(border);
     }
 
+    /**
+     * Initialize input textarea.
+     */
     protected void initInput() {
         input = new JTextArea();
 		input.setBounds(boardWidth(), buttonY(3), sideBarWidth, sqSize);
@@ -270,11 +252,17 @@ public class BoardUi extends JFrame {
 		input.setBorder(border2);
     }
 
+    /**
+     * Initialize chess board.
+     */
     protected void initBoard() {
         initBoardSquares();
         initBoardAxisLabels();
     }
 
+    /**
+     * Initialize chess board squares.
+     */
     protected void initBoardSquares() {
         // For each row...
         for (int r = 7; r >= 0; r--) {
@@ -295,6 +283,9 @@ public class BoardUi extends JFrame {
         }
     }
 
+    /**
+     * Initialize chess board axis labels.
+     */
     protected void initBoardAxisLabels() {
         //Axis Labels
         for(int i = 7; i >= 0; i--) {
@@ -320,30 +311,51 @@ public class BoardUi extends JFrame {
         }
     }
 
-    protected int buttonY(int pos) {
-        return boardYOffset+buttonOffset+pos*sqSize;
+    /**
+     * Gets the button y offset at a given file.
+     */
+    protected int buttonY(int file) {
+        return boardYOffset+buttonOffset+file*sqSize;
     }
-
+    
+    /**
+     * Gets the button height.
+     */
     protected int buttonHeight() {
         return sqSize-2*buttonOffset;
     }
 
+    /**
+     * Gets the board width.
+     */
     protected int boardWidth() {
         return sqSize * 8 + 2 * boardXOffset;
     }
 
+    /**
+     * Gets the main frame width.
+     */
     protected int frameWidth() {
         return sqSize * 8 + 3 * boardXOffset - sqSize/2 + sideBarWidth;
     }
 
+    /**
+     * Gets the main frame height.
+     */
     protected int frameHeight() {
         return sqSize * 8 + (int) (2.5 * (double) boardYOffset);
     }
 
+    /**
+     * Place a Component on the chess board.
+     */
     protected void placeOnBoard(Component c, int x, int y, int width, int height) {
         c.setBounds(x+boardXOffset, y+boardYOffset, width, height);
     }
 
+    /**
+     * Render the current board state.
+     */
     protected void renderBoardState() {
         for(int sq = Board.A1;sq <= Board.H8;sq++) {
             int piece = game.position.pieceAt(sq);
@@ -354,10 +366,16 @@ public class BoardUi extends JFrame {
         }
     }
 
+    /**
+     * Clear the game log.
+     */
     protected void clearLog() {
         gameLog.setText("");
     }
 
+    /**
+     * Append a game log.
+     */
     protected void log(String log) {
         gameLog.setText(
             gameLog.getText()+"\n"+log    
@@ -438,8 +456,12 @@ public class BoardUi extends JFrame {
         return Board.isWhite(square) ? lightSquareColor : darkSquareColor;
     }
 
+    /**
+     * Update the game state.
+     */
     protected void updateGameState() {
         updateGameLog();
+        renderBoardState();
 
         if(game.outcome().termination == null) return;
 
