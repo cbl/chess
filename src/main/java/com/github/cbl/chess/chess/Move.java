@@ -68,8 +68,8 @@ public class Move {
     public boolean isZeroing(Position pos) {
         long touched = Board.BB_SQUARES[from] ^ Board.BB_SQUARES[to];
 
-        return (touched & pos.pawns(pos.sideToMove)) != 0 
-            || (touched & pos.piecesByColor(Piece.Color.opposite(pos.sideToMove))) != 0;
+        return (touched & pos.pawns(pos.sideToMove)) != Bitboard.EMPTY
+            || (touched & pos.piecesByColor(Piece.Color.opposite(pos.sideToMove))) != Bitboard.EMPTY;
     }
 
     /**

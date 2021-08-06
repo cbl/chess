@@ -110,8 +110,8 @@ public class FenNotation implements Notation {
         StringJoiner sj = new StringJoiner(" ");
 
         sj.add(composeEPD(pos));
-        sj.add(Integer.toString(pos.halfmoveCount));
         sj.add(Integer.toString(pos.moveNumber));
+        sj.add(Integer.toString(pos.halfmoveCount));
 
         return sj.toString();
     }

@@ -188,8 +188,6 @@ public class Position implements Cloneable {
      * check.
      */
     protected boolean isSafe(int kingSquare, Move move) {
-
-        // King move.
         if(move.from == kingSquare)
             return !this.isAttackedBy(this.themColor(), move.to);
 
@@ -606,21 +604,6 @@ public class Position implements Cloneable {
     }
 
     /**
-     * Determine if a move reveals the own king into check.
-     */
-    public boolean isIntoCheck(Move move) {
-        long king = this.king(this.sideToMove);
-
-        long checkers = this.attackers(Piece.Color.opposite(this.sideToMove), Board.fromBB(king));
-        // MoveList evasions = this.generateEvasions(king, checkers, Board.BB_SQUARES[move.from], Board.BB_SQUARES[move.to]);
-        // if(checked != 0) {
-        //     return true;
-        // }
-        
-        return false;
-    }
-
-    /**
      * Generate king evasions for when the king is in check.
      */
     protected MoveList generateEvasions(long king, long checkers, long fromMask, long toMask) {
@@ -773,7 +756,8 @@ public class Position implements Cloneable {
         // Push move to the stack and increase index.
         moves[moveIndex] = move;
         moveIndex++;
-
+        moveNumber = moveIndex / 2;
+        
         try {
             this.stack.add(this.clone());
         } catch(CloneNotSupportedException e) {}
