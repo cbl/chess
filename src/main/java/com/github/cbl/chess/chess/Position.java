@@ -25,14 +25,23 @@ public class Position implements Cloneable {
 
     protected List<Position> stack = new ArrayList<Position>();
 
+    /**
+     * Create a new instance of the Position.
+     */
     public Position() {
         //
     }
 
+    /**
+     * Clone an instance of the Position.
+     */
     protected Position(Position pos) {
         this.restore(pos);
     }
 
+    /**
+     * Restore an instance of the Position.
+     */
     protected void restore(Position pos) {
         this.sideToMove = pos.sideToMove;
         this.halfmoveCount = pos.halfmoveCount;
@@ -47,116 +56,138 @@ public class Position implements Cloneable {
         this.pieces = pos.pieces;
         this.stack = pos.stack;
     }
-    
-    public void addPiece(int square, int type, int color) {
-        long bbSquare = Board.BB_SQUARES[square];
-        this.piecesByColor[color] |= bbSquare;
-        this.piecesByColor[Piece.Color.ANY] |= bbSquare;
-        this.piecesByType[type] |= bbSquare;
-        this.piecesByType[Piece.ANY] |= bbSquare;
-        this.pieces[square] = Piece.make(type, color);
-    }
 
+    /**
+     * Gets bitboard that contains all pieces of the given type.
+     */
     public long piecesByType(int type) {
         return this.piecesByType[type];
     }
 
+    /**
+     * Gets bitboard that contains pieces by the given color.
+     */
     public long piecesByColor(int color) {
         return this.piecesByColor[color];
     }
 
-    public long pawns()
-    {
+    /**
+     * Gets bitboard that contains all pawns.
+     */
+    public long pawns() {
         return this.piecesByType[Piece.PAWN];
     }
 
-    public long pawns(int color)
-    {
+    /**
+     * Gets bitboard that contains all pawns of the given color.
+     */
+    public long pawns(int color) {
         return this.piecesByType[Piece.PAWN] & this.piecesByColor[color];
     }
 
-    public long knights()
-    {
+    /**
+     * Gets bitboard that contains all knights.
+     */
+    public long knights() {
         return this.piecesByType[Piece.KNIGHT];
     }
 
-    public long knights(int color)
-    {
+    /**
+     * Gets bitboard that contains all knights of the given color.
+     */
+    public long knights(int color) {
         return this.piecesByType[Piece.KNIGHT] & this.piecesByColor[color];
     }
 
-    public long bishops()
-    {
+    /**
+     * Gets bitboard that contains all bishops.
+     */
+    public long bishops() {
         return this.piecesByType[Piece.BISHOP];
     }
 
-    public long bishops(int color)
-    {
+    /**
+     * Gets bitboard that contains all bishops of the given color.
+     */
+    public long bishops(int color) {
         return this.piecesByType[Piece.BISHOP] & this.piecesByColor[color];
     }
 
-    public long rooks()
-    {
+    /**
+     * Gets bitboard that contains all rooks.
+     */
+    public long rooks() {
         return this.piecesByType[Piece.ROOK];
     }
 
-    public long rooks(int color)
-    {
+    /**
+     * Gets bitboard that contains all rooks of the given color.
+     */
+    public long rooks(int color) {
         return this.piecesByType[Piece.ROOK] & this.piecesByColor[color];
     }
 
-    public long queens()
-    {
+    /**
+     * Gets bitboard that contains all queens.
+     */
+    public long queens() {
         return this.piecesByType[Piece.QUEEN];
     }
 
-    public long queens(int color)
-    {
+    /**
+     * Gets bitboard that contains all queens of the given color.
+     */
+    public long queens(int color) {
         return this.piecesByType[Piece.QUEEN] & this.piecesByColor[color];
     }
 
-    public long kings()
-    {
+    /**
+     * Gets bitboard that contains all kings.
+     */
+    public long kings() {
         return this.piecesByType[Piece.KING];
     }
 
-    public long king(int color)
-    {
+    /**
+     * Gets bitboard that contains the king of the given color.
+     */
+    public long king(int color) {
         return this.piecesByType[Piece.KING] & this.piecesByColor[color];
     }
 
-    public long occupied(int color)
-    {
+    /**
+     * Gets bitboard that contains all pieces of the given color.
+     */
+    public long occupied(int color) {
         return this.piecesByColor[color];
     }
 
-    public long occupied()
-    {
+    /**
+     * Gets bitboard that contains all pieces.
+     */
+    public long occupied() {
         return this.piecesByType[Piece.ANY];
     }
 
     /**
-     * The color of the player whose turn it is not.
+     * Gets the color of the player whose turn it is not.
      */
-    public int themColor()
-    {
+    public int themColor() {
         return Piece.Color.opposite(this.sideToMove);
     }
 
+    /**
+     * Get all pieces of the given color and type.
+     */
     public long piecesByColorAndType(int color, int type) {
         return this.piecesByType[type] & this.piecesByColor[color];
-    }
-
-    public void addPiece(int square, int piece) {
-        this.addPiece(square, Piece.getType(piece), Piece.getColor(piece));
     }
 
     /**
      * Determines out if a move does not put the king at the given square in 
      * check.
      */
-    protected boolean isSafe(int kingSquare, Move move)
-    {
+    protected boolean isSafe(int kingSquare, Move move) {
         if(move.from == kingSquare) {
             return !this.isAttackedBy(this.themColor(), move.to);
         }
@@ -170,8 +201,7 @@ public class Position implements Cloneable {
     /**
      * Determines if a pseudo-legal move is a castling move.
      */
-    public boolean isCastling(Move move)
-    {
+    public boolean isCastling(Move move) {
         if(this.pieceTypeAt(move.from) != Piece.KING) {
             return false;
         }
@@ -182,8 +212,7 @@ public class Position implements Cloneable {
     /**
      * Determines whether the given square is attacked by the given color.
      */
-    public boolean isAttackedBy(int color, int square)
-    {
+    public boolean isAttackedBy(int color, int square) {
         return this.attackers(color, square) != 0;
     }
 
@@ -194,8 +223,7 @@ public class Position implements Cloneable {
      * - it is between the king and an opponents sliding piece.
      * - it is the only piece between the king and the opponents sliding piece.
      */
-    protected long sliderBlockers(int color)
-    {
+    protected long sliderBlockers(int color) {
         int themColor = Piece.Color.opposite(color);
         int kingSquare = Board.fromBB(this.king(color));
         long rooksAndQueens = this.rooks() | this.queens();
@@ -222,8 +250,10 @@ public class Position implements Cloneable {
         return blockers & this.occupied(color);
     }
 
-    protected void setCheckInfo()
-    {
+    /**
+     * Cache check info.
+     */
+    protected void setCheckInfo() {
         this.pinned[Piece.Color.WHITE] = this.sliderBlockers(Piece.Color.WHITE);
         this.pinned[Piece.Color.BLACK] = this.sliderBlockers(Piece.Color.BLACK);
         this.checkers = this.attackers(this.themColor(), Board.fromBB(this.king(this.themColor())));
@@ -232,8 +262,7 @@ public class Position implements Cloneable {
     /**
      * Determines whether it is checkmate.
      */
-    public boolean isCheckmate()
-    {
+    public boolean isCheckmate() {
         if(!this.isCheck()) return false;
 
         return this.generateLegalMoves(Bitboard.ALL).isEmpty();
@@ -242,8 +271,7 @@ public class Position implements Cloneable {
     /**
      * Determines whether it is stalemate.
      */
-    public boolean isStalemate()
-    {
+    public boolean isStalemate() {
         if(this.isCheck()) return false;
 
         return this.generateLegalMoves(Bitboard.ALL).isEmpty();
@@ -268,8 +296,7 @@ public class Position implements Cloneable {
      * 
      * @see https://support.chess.com/article/128-what-does-insufficient-mating-material-mean
      */
-    public boolean isInsufficientMaterial()
-    {
+    public boolean isInsufficientMaterial() {
         if(occupied() == kings()) return true;
 
         int[] colors = {Piece.Color.WHITE, Piece.Color.BLACK};
@@ -302,8 +329,7 @@ public class Position implements Cloneable {
     /**
      * Determine whether the king is in check.
      */
-    public boolean isCheck()
-    {
+    public boolean isCheck() {
         return this.checkers != 0;
     }
 
@@ -436,8 +462,10 @@ public class Position implements Cloneable {
         return moveList;
     }
 
-    public MoveList generatePesudoLegalEnPassant(long fromMask)
-    {
+    /**
+     * Generate pseudo legal en passant moves.
+     */
+    public MoveList generatePesudoLegalEnPassant(long fromMask) {
         MoveList moveList = new MoveList();
 
         if((this.epSquare & this.occupied()) == 0) return moveList;
@@ -460,8 +488,7 @@ public class Position implements Cloneable {
      * Generate castling moves for all kings whose position match with the 
      * given bit mask.
      */
-    public MoveList generatePseudoLegalCastlingMoves(long fromMask, long toMask)
-    {
+    public MoveList generatePseudoLegalCastlingMoves(long fromMask, long toMask) {
         MoveList moveList = new MoveList();
         long bbKing = this.king(this.sideToMove) & fromMask;
 
@@ -486,6 +513,9 @@ public class Position implements Cloneable {
         return moveList;
     }
 
+    /**
+     * Determine if a move from one square to another is legal.
+     */
     public boolean isLegal(int from, int to) {
         int piece = this.pieceAt(from);
         if(piece == 0 || !Piece.isColor(piece, this.sideToMove)) {
@@ -495,30 +525,44 @@ public class Position implements Cloneable {
         return this.generateLegalMoves(Board.BB_SQUARES[from]).exists(from, to);
     }
 
+    /**
+     * Get the piece at a given square.
+     */
     public int pieceAt(int square) {
         return this.pieces[square];
     }
 
+    /**
+     * Get the piece type at a given square.
+     */
     public int pieceTypeAt(int square) {
         return Piece.getType(this.pieces[square]);
     }
 
+    /**
+     * The the piece color at a given square.
+     */
     public int pieceColorAt(int square) {
         return Piece.getColor(this.pieces[square]);
     }
 
+    /**
+     * Get the move at a given index.
+     */
     public Move moveAt(int index) {
         return this.moves[index];
     }
 
+    /**
+     * Set the side to move.
+     */
     public void setSideToMove(int color) {
         this.sideToMove = color;
     }
 
-    // public boolean givesCheck(Move move) {
-        
-    // }
-
+    /**
+     * Determine if a move reveals the own king into check.
+     */
     public boolean isIntoCheck(Move move) {
         long king = this.king(this.sideToMove);
 
@@ -531,6 +575,9 @@ public class Position implements Cloneable {
         return false;
     }
 
+    /**
+     * Generate king evasions for when the king is in check.
+     */
     protected MoveList generateEvasions(long king, long checkers, long fromMask, long toMask) {
         long sliders = checkers & (this.bishops() | this.rooks() | this.queens());
         MoveList evasions = new MoveList();
@@ -563,6 +610,9 @@ public class Position implements Cloneable {
         return evasions;
     }
 
+    /**
+     * Generates a bitboard containing pieces that attack the given square.
+     */
     public long attackers(int color, int square) {
         long diagPieces = BBIndex.BISHOP_MASKS[square] & this.occupied();
         long filePieces = BBIndex.FILE_MASKS[square] & this.occupied();
@@ -581,8 +631,11 @@ public class Position implements Cloneable {
         return attackers & this.piecesByColor[color];
     }
 
-    public long attacks(int square)
-    {
+    /**
+     * Generates a bitboard that contains all pieces that are attacked by the 
+     * given square.
+     */
+    public long attacks(int square) {
         int piece = this.pieceAt(square);
 
         if(piece == Piece.NONE) return 0;
@@ -613,34 +666,9 @@ public class Position implements Cloneable {
         return attacks;
     }
 
-    protected long filterBlocked(long attackMask, int from, int move) {
-        long attacks = 0;
-        int match = 0, piece;
-        boolean[] blocked = new boolean[4];
-        for(int sq = from+move;sq<=Board.H8&&sq>=Board.A1;sq+=move) {
-            if(!Bitboard.valueAt(attackMask, sq)) continue;
-            match = (sq-from)%8 == 0 ? 0 
-                : (sq-from)%9 == 0 ? 1 
-                : sq/8 == from/8 ? 3 
-                : (sq-from)%7 == 0 ? 2 
-                : -1;
-
-            if(match == -1) continue;
-            if(blocked[match]) continue;
-
-            attacks |= attackMask & Board.BB_SQUARES[sq];
-
-            // Block direction if a piece is on the square.
-            if(match != -1 && (piece = pieceAt(sq)) != 0) {
-                blocked[match] = true;
-                if(Piece.isType(piece, Piece.PAWN) && match == 0)
-                    attacks &= ~Board.BB_SQUARES[sq];
-            }
-        }
-
-        return attacks;
-    }
-
+    /**
+     * Push a move to the move stack.
+     */
     public void push(Move move) {
         long fromBB = Board.BB_SQUARES[move.from];
         int toFile = Board.getFile(move.to);
@@ -717,8 +745,7 @@ public class Position implements Cloneable {
     /**
      * Restores the previous position and returns the last executed move.
      */
-    public Move pop()
-    {
+    public Move pop() {
         // Cannot pop when no move has been made so far.
         if(this.moveIndex == 0) return null;
 
@@ -732,13 +759,14 @@ public class Position implements Cloneable {
     /**
      * Gets the last executed move.
      */
-    public Move peek()
-    {
+    public Move peek() {
         return this.moveIndex > 0 ? this.moves[this.moveIndex-1] : null;
     }
 
-    public void setPieceAt(int square, int pieceType, int color)
-    {
+    /**
+     * Set a piece at the given square.
+     */
+    public void setPieceAt(int square, int pieceType, int color) {
         this.removePieceAt(square);
 
         long mask = Board.BB_SQUARES[square];
@@ -750,8 +778,10 @@ public class Position implements Cloneable {
         this.pieces[square] = Piece.make(pieceType, color);
     }
 
-    public int removePieceAt(int square)
-    {
+    /**
+     * Remove a piece from the given square.
+     */
+    public int removePieceAt(int square) {
         int pieceType = this.pieceTypeAt(square);
         long mask = Board.BB_SQUARES[square];
 
@@ -767,6 +797,9 @@ public class Position implements Cloneable {
         return pieceType;
     }
 
+    /**
+     * Set castling rights for the given color and rook square.
+     */
     public void setCastlingRight(int color, int rookSquare) {
         if(rookSquare == Board.SQUARE_NONE) return;
 
@@ -780,6 +813,9 @@ public class Position implements Cloneable {
         castlingRights |= ranks & side;
     }
 
+    /**
+     * Gets bitboard that contains all castling rights for the given color.
+     */
     public long castlingRightsFor(int color) {
         return this.castlingRights
             & (color == Piece.Color.WHITE
@@ -787,10 +823,16 @@ public class Position implements Cloneable {
             : Bitboard.BLACK_SIDE);
     }
 
+    /**
+     * Set en passant square.
+     */
     public void setEnPassantSquare(int square) {
         this.epSquare = Board.BB_SQUARES[square];
     }
 
+    /**
+     * Set en passant square by bitboard square.
+     */
     public void setEnPassantSquare(long bbSquare) {
         this.epSquare = bbSquare;
     }
@@ -823,6 +865,9 @@ public class Position implements Cloneable {
         return ascii.toString();
     }
 
+    /**
+     * Clone the position.
+     */
     public Position clone() throws CloneNotSupportedException {
         return new Position(this);
     }

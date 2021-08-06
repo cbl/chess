@@ -122,24 +122,11 @@ public class BoardUi extends JFrame {
         }
 
         void handleStartTransition() {
-            for(JButton button : ui.beforeGameButtons) {
-                if(button != null) ui.frame.remove(button);
-            }
-            
-            for(JButton button : ui.initialGameButtons) {
-                if(button != null) ui.frame.add(button);
-            }
-            ui.frame.revalidate(); 
-            ui.frame.repaint();
+            //
         }
 
         void handleOverState() {
-            for(JButton button : BoardUi.this.gameButtons)
-                if(button != null) BoardUi.this.frame.remove(button);
-            for(JButton button : BoardUi.this.beforeGameButtons)
-                if(button != null) BoardUi.this.frame.add(button);
-            BoardUi.this.frame.revalidate(); 
-            BoardUi.this.frame.repaint();
+            //
         }
     }
 	
@@ -193,32 +180,33 @@ public class BoardUi extends JFrame {
 		newGameButton.setFocusable(false);
 
         newGameButton.addActionListener(e -> {
-            Position pos = fen.parse(
-                "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
-                // "k1K5/8/2Q5/8/8/8/8/8 w - - 0 0"
-                // "kp5Q/8/8/8/8/8/8/K7 w - - 0 0"
-                // "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
-                // "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"
-                // "8/8/8/8/8/8/6b1/8 w KQkq - 1 6"
-            );
-            
+            Position pos = fen.parse(FenNotation.startingFen);
             startGame(pos);
         });
     }
 
-    protected void startGame(Position pos)
-    {
+    protected void startGame(Position pos) {
         game = new GameOfChess(pos);
         game.state().addObserver(new GameObserver(this));
         game.start();
+
+        frame.remove(input);
+        frame.remove(newGameButton);
+        frame.remove(loadGameButton);
+        frame.remove(loadFenButton);
+        frame.add(resignButton);
+        frame.revalidate(); 
+        frame.repaint();
     }
 
     protected void initResignButton() {
         resignButton = makeButton("Resign");
-		resignButton.setBounds(boardWidth(), buttonY(0), sideBarWidth/2-buttonOffset, buttonHeight());
+		resignButton.setBounds(boardWidth(), buttonY(0), sideBarWidth, buttonHeight());
 		resignButton.setFocusable(false);
 
-        resignButton.addActionListener(e -> game.resign());
+        resignButton.addActionListener(e -> {
+            game.resign();
+        });
     }
 
     protected void initLoadGameButton() {
@@ -243,10 +231,6 @@ public class BoardUi extends JFrame {
         loadFenButton.addActionListener(e -> {
             String fenString = input.getText();
             startGame(fen.parse(fenString));
-            frame.remove(input);
-            frame.remove(loadFenButton);
-            frame.revalidate(); 
-            frame.repaint();
         });
     }
 

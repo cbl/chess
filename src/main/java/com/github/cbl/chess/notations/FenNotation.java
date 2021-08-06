@@ -10,6 +10,12 @@ import java.util.HashMap;
 import java.util.ArrayList;
 
 public class FenNotation implements Notation {
+
+    /**
+     * The standard occupation.
+     */
+    public static final String startingFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0";
+
     public static final String pieceToChar = " PNBRQK  pnbrqk";
 
     public static int charToPiece(char ch) {
@@ -36,7 +42,7 @@ public class FenNotation implements Notation {
             else if(ch == '/')
                 square += 2 * Move.DOWN;
             else if((piece = charToPiece(ch)) != -1) {
-                p.addPiece(square, piece);
+                p.setPieceAt(square, Piece.getType(piece), Piece.getColor(piece));
                 square++;
             }
         }
