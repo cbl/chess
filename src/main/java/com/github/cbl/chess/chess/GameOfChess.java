@@ -13,7 +13,7 @@ public class GameOfChess {
     }
 
     public enum Termination {
-        CHECKMATE, STALEMATE, INSUFFICIENT_MATERIAL, THREEFOLD_REPETITION, RESIGNED
+        CHECKMATE, STALEMATE, INSUFFICIENT_MATERIAL, RESIGNED
     }
 
     public class Outcome {
@@ -51,8 +51,10 @@ public class GameOfChess {
     /**
      * Start the game.
      */
-    public boolean start() {
-        return state.transition(Transition.Start);
+    public void start() {
+        state.transition(Transition.Start);
+
+        checkTermination();        
     }
 
     /**
@@ -80,11 +82,16 @@ public class GameOfChess {
         position.push(move);
         state.transition(Transition.Move);
 
-        // Check if the game has ended.
-        if(outcome().termination != null) 
-            state.transition(Transition.Over);
+        checkTermination();
 
         return true;
+    }
+
+    /**
+     * Check if the game has ended.
+     */
+    protected void checkTermination() {
+        if(outcome().termination != null) state.transition(Transition.Over);
     }
 
     /**

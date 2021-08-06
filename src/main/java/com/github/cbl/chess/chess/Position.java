@@ -360,7 +360,7 @@ public class Position implements Cloneable {
                 boolean isOfSameColor = 
                     (bishops() & Bitboard.DARK_SQUARES) == Bitboard.EMPTY || 
                     (bishops() & Bitboard.LIGHT_SQUARES) == Bitboard.EMPTY;
-                if(isOfSameColor || pawns() != Bitboard.EMPTY || knights() != Bitboard.EMPTY) {
+                if((kings() & bishops()) == occupied() && isOfSameColor) {
                     return false;
                 }
             }

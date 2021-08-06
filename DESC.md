@@ -62,3 +62,19 @@ Wenn der eigene König im Schach ist, können nur Züge ausgeführt werden, die 
 Ein weiterer FEN zeig, dass der Angreifer (in diesem Fall von der Dame) geschlagen werden kann wenn.
 
 rnb1kbnr/ppp2ppp/8/1B1qp3/8/5P2/PPPP2PP/RNBQK1NR b KQkq - 1 0
+
+#### Unentschieden Durch Unzureichenden Material
+
+Ein Unentschieden durch unzureichenden Material tritt in den folgenden Fällen ein:
+
+1. Wenn es nur zwei Könige gibt.
+2. Wenn ein Spieler nur einen Springer hat UND:
+   2.1. Der Spieler keine anderen Figuren hat.
+   2.2. Der Gegenspieler keine Figuren außer dem König hat.
+3. Wenn ein Spieler nur noch Läufer einer Farbe hat UND:
+   3.1. Der Gegenspieler keine Figuren außer dem König hat.
+
+Nach importieren der folgenden FEN's, kann die Figure mit dem schwarzen König geschlagen werden um ein Unentschieden zu erzwingen:
+
+1. kP6/8/8/8/8/8/8/7K b - - 0 0
+2. kN6/8/8/8/4N3/8/8/7K b - - 0 0
