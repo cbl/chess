@@ -17,18 +17,30 @@ public class StateMachine
         TransitionedTo
     }
 
+    /**
+     * Create a new StateMachine instance.
+     */
     public StateMachine(Object initialState) {
         this.state = initialState;
     }
 
+    /**
+     * Add an observer that should listen on state and transition events.
+     */
     public void addObserver(Observer observer) {
         this.observer.add(observer);
     }
 
+    /**
+     * Get the current state.
+     */
     public Object current() {
         return this.state;
     }
 
+    /**
+     * Execute a transition.
+     */
     public boolean transition(Object transition) {
         if(! this.transitions.containsKey(transition)) {
             return false;
@@ -45,6 +57,9 @@ public class StateMachine
         return true;
     }
 
+    /**
+     * Allow a transition.
+     */
     public StateMachine allow(Object transition, Object from, Object to)
     {
         if(! this.transitions.containsKey(transition)) {
@@ -56,6 +71,9 @@ public class StateMachine
         return this;
     }
 
+    /**
+     * Fire events for a transition.
+     */
     private void fireEvents(Object transition, Object from, Object to) {
         for(Observer observer : this.observer) {
             observer.handle(Event.Transition, transition);
