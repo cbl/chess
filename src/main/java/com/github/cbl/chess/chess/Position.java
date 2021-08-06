@@ -635,7 +635,7 @@ public class Position implements Cloneable {
 
         // Generate king eveasions.
         if((king & fromMask) != 0) {
-            for(int to : Board.toReversedList(BBIndex.ATTACKS[Piece.KING][kingSquare] & ~this.occupied(this.sideToMove))) {
+            for(int to : Board.toReversedList(BBIndex.ATTACKS[Piece.KING][kingSquare] & ~this.occupied(this.sideToMove) & ~attacked & toMask)) {
                 evasions.add(new Move(kingSquare, to));
             }
         }
