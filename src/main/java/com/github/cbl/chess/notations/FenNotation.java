@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.StringJoiner;
+import java.lang.NumberFormatException;
 
 public class FenNotation implements Notation {
 
@@ -30,71 +31,75 @@ public class FenNotation implements Notation {
     /**
      * Generate a board from the given notation.
      */
-    public Position parse(String fen)
+    public Position parse(String fen) throws InvalidFormatException
     {
-        Position p = new Position();
-        String substr;
-        int i, piece, square = Board.A8;
-        char ch;
+        try {
+            Position p = new Position();
+            String substr;
+            int i, piece, square = Board.A8;
+            char ch;
 
-        // Pieces
-        for (i=0;i<fen.length();i++) {
-            ch = fen.charAt(i);
-            if(ch == ' ') break;
+            // Pieces
+            for (i=0;i<fen.length();i++) {
+                ch = fen.charAt(i);
+                if(ch == ' ') break;
 
-            if(Character.isDigit(ch))
-                square += (ch - '0') * Move.RIGHT;
-            else if(ch == '/')
-                square += 2 * Move.DOWN;
-            else if((piece = charToPiece(ch)) != -1) {
-                p.setPieceAt(square, Piece.getType(piece), Piece.getColor(piece));
-                square++;
+                if(Character.isDigit(ch))
+                    square += (ch - '0') * Move.RIGHT;
+                else if(ch == '/')
+                    square += 2 * Move.DOWN;
+                else if((piece = charToPiece(ch)) != -1) {
+                    p.setPieceAt(square, Piece.getType(piece), Piece.getColor(piece));
+                    square++;
+                }
             }
+
+            // Side to move
+            p.setSideToMove(
+                fen.charAt(++i) == 'w' ? Piece.Color.WHITE : Piece.Color.BLACK
+            );
+
+            // Castling rights
+            for(i+=2;i<fen.length();i++) {
+                ch = fen.charAt(i);
+
+                if(ch == ' ') break;
+                if(ch == '-') continue; 
+
+                piece = charToPiece(ch);
+                int color = Piece.getColor(piece);
+                int rookSquare = Board.SQUARE_NONE;
+
+                if(Piece.isType(piece, Piece.KING))
+                    rookSquare = Board.H1;
+                else if(Piece.isType(piece, Piece.QUEEN))
+                    rookSquare = Board.A1;
+                if(color == Piece.Color.BLACK)
+                    rookSquare += 8 * 7;
+
+                p.setCastlingRight(color, rookSquare);
+            }
+            
+            // En Passant
+            long enPassantSquare = AlgebraicNotation.parseBBSquare(
+                substr = fen.substring(++i, i+=2)
+            );
+            if(substr.charAt(0) != '-')
+                p.setEnPassantSquare(enPassantSquare);
+            else
+                i--;
+
+            substr = fen.substring(++i);
+            if(substr == "") return p;
+
+            // Number of halfmoves and moves
+            p.halfmoveCount = Integer.parseInt(substr.substring(0, substr.indexOf(' ')));
+            p.moveNumber = Integer.parseInt(fen.substring((++i)+substr.indexOf(' ')));
+
+            return p;
+        } catch(NumberFormatException e) {
+            throw new Notation.InvalidFormatException();
         }
-
-        // Side to move
-        p.setSideToMove(
-            fen.charAt(++i) == 'w' ? Piece.Color.WHITE : Piece.Color.BLACK
-        );
-
-        // Castling rights
-        for(i+=2;i<fen.length();i++) {
-            ch = fen.charAt(i);
-
-            if(ch == ' ') break;
-            if(ch == '-') continue; 
-
-            piece = charToPiece(ch);
-            int color = Piece.getColor(piece);
-            int rookSquare = Board.SQUARE_NONE;
-
-            if(Piece.isType(piece, Piece.KING))
-                rookSquare = Board.H1;
-            else if(Piece.isType(piece, Piece.QUEEN))
-                rookSquare = Board.A1;
-            if(color == Piece.Color.BLACK)
-                rookSquare += 8 * 7;
-
-            p.setCastlingRight(color, rookSquare);
-        }
-        
-        // En Passant
-        long enPassantSquare = AlgebraicNotation.parseBBSquare(
-            substr = fen.substring(++i, i+=2)
-        );
-        if(substr.charAt(0) != '-')
-            p.setEnPassantSquare(enPassantSquare);
-        else
-            i--;
-
-        substr = fen.substring(++i);
-        if(substr == "") return p;
-
-        // Number of halfmoves and moves
-        p.halfmoveCount = Integer.parseInt(substr.substring(0, substr.indexOf(' ')));
-        p.moveNumber = Integer.parseInt(fen.substring((++i)+substr.indexOf(' ')));
-
-        return p;
     }
 
     /**

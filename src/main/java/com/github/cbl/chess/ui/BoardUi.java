@@ -22,14 +22,12 @@ import com.github.cbl.chess.chess.Board;
 import com.github.cbl.chess.chess.BBIndex;
 import com.github.cbl.chess.chess.Position;
 import com.github.cbl.chess.chess.Piece;
-import com.github.cbl.chess.notations.AlgebraicNotation;
+import com.github.cbl.chess.chess.GameOfChess;
+import com.github.cbl.chess.chess.Board;
 import com.github.cbl.chess.notations.FenNotation;
 import com.github.cbl.chess.notations.Notation;
-import com.github.cbl.chess.chess.GameOfChess;
 import com.github.cbl.chess.util.StateMachine;
-
 import com.github.cbl.chess.util.Observer;
-import com.github.cbl.chess.chess.Board;
 
 
 public class BoardUi extends JFrame {
@@ -140,9 +138,11 @@ public class BoardUi extends JFrame {
 		newGameButton.setBounds(boardWidth(), buttonY(0), sideBarWidth, buttonHeight());
 		newGameButton.setFocusable(false);
 
-        newGameButton.addActionListener(e -> {
-            Position pos = fen.parse(FenNotation.startingFen);
-            startGame(pos);
+        newGameButton.addActionListener(event -> {
+            try {
+                Position pos = fen.parse(FenNotation.startingFen);
+                startGame(pos);
+            } catch(Notation.InvalidFormatException e) {}
         });
     }
 
@@ -206,9 +206,13 @@ public class BoardUi extends JFrame {
 		loadFenButton.setBounds(boardWidth(), buttonY(2), sideBarWidth, buttonHeight());
 		loadFenButton.setFocusable(false);
 		
-        loadFenButton.addActionListener(e -> {
+        loadFenButton.addActionListener(event -> {
             String fenString = input.getText();
-            startGame(fen.parse(fenString));
+            try {
+                startGame(fen.parse(fenString));
+            } catch(Notation.InvalidFormatException e) {
+                log("Invalid Fen \"" + fenString + "\"");
+            }
         });
     }
 
