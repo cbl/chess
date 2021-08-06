@@ -4,13 +4,13 @@ Das Programm stellt eine virtuelles Schachbrett dar. Im folgenden wird der Funkt
 
 ### Funktionsumfang
 
-Es können Spiele gespielt werden. Beim ziehen der Figuren werden nach dem Klicken auf eine Figur die legalen Zügen eingefärbt. Es können beliebige Boardpositionen in Form des FEN's geladen werden. Außerdem ist es Möglich das bestehende Spiel in Form eines FEN's zu exportieren. Nur legale Züge sind möglich.
+Es können Spiele gespielt werden. Beim Ziehen der Figuren werden nach dem Klicken auf eine Figur die legalen Zügen eingefärbt. Es können beliebige Boardpositionen in Form des FEN's geladen werden. Außerdem ist es Möglich das bestehende Spiel in Form eines FEN's zu exportieren. Nur legale Züge sind möglich.
 
 ### Spiel Anleitung
 
 Wenn auf den "New Game" Button geklickt wird, wird die Standard Belegung eines Schachbrettes geladen. Durch das klicken auf "Import Game" und das anschließende einfügen des FEN's in das Input Feld rechts neben dem Schachbrett können auch andere Spiele geladen werden.
 
-Das ziehen einer Figur erfolgt, indem die Figur durch einen Klick ausgewählt wird und anschließend auf das Quadrat geklickt wird auf das die Figur gezogen werden soll.
+Das Ziehen einer Figur erfolgt, indem die Figur durch einen Klick ausgewählt wird und anschließend auf das Quadrat geklickt wird auf das die Figur gezogen werden soll.
 
 Während des Spiels kann der FEN zu jedem beliebigen Zeitpunkt aus dem Spiel exportiert werden in dem dieser aus dem Input Feld rechts neben dem Feld kopiert wird.
 
