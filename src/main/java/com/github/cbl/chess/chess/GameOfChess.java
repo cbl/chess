@@ -117,4 +117,13 @@ public class GameOfChess {
         
         return new Outcome(null, Piece.Color.NONE);
     }
+
+    /**
+     * Determines whether a player can resign.
+     * 
+     * A player can resign when the first move was made.
+     */
+    public boolean canResign() {
+        return position.moves[0] != null;
+    }
 }

@@ -160,9 +160,7 @@ public class BoardUi extends JFrame {
         frame.remove(newGameButton);
         frame.remove(loadGameButton);
         frame.remove(loadFenButton);
-        frame.add(resignButton);
-        frame.revalidate(); 
-        frame.repaint();
+        render();
         log("New game has started! ("+Piece.Color.toString(pos.sideToMove)+" to move)");
     }
 
@@ -193,8 +191,7 @@ public class BoardUi extends JFrame {
             frame.add(input);
             frame.add(loadFenButton);
             frame.remove(loadGameButton);
-            frame.revalidate(); 
-            frame.repaint();
+            render();
 
             clearLog();
             log("Paste the FEN representation of the game you want to import into the input field above.");
@@ -464,11 +461,27 @@ public class BoardUi extends JFrame {
         updateGameLog();
         renderBoardState();
 
+        if(game.canResign()) showResignButton();
         if(game.outcome().termination == null) return;
 
         frame.remove(resignButton);
         frame.add(newGameButton);
         frame.add(loadGameButton);
+        render();
+    }
+    
+    /**
+     * Show resign button.
+     */
+    protected void showResignButton() {
+        frame.add(resignButton);
+        render();
+    }
+
+    /**
+     * Render main frame.
+     */
+    protected void render() {
         frame.revalidate(); 
 		frame.repaint();
     }
