@@ -3,6 +3,19 @@ package com.github.cbl.chess.chess;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A bitboard represents a chess board as a set of 64 bits. 
+ * 
+ * The following example would contain a piece on the square A1:
+ * 0 0 0 0 0 0 0 0
+ * 0 0 0 0 0 0 0 0
+ * 0 0 0 0 0 0 0 0
+ * 0 0 0 0 0 0 0 0
+ * 0 0 0 0 0 0 0 0
+ * 0 0 0 0 0 0 0 0
+ * 0 0 0 0 0 0 0 0
+ * 1 0 0 0 0 0 0 0
+ */
 public class Bitboard {
     public static final long ALL = -1;
     public static final long EMPTY = 0;
