@@ -251,9 +251,11 @@ public class Bitboard {
     public static boolean valueAt(long board, int square) {
         return ((board >> square) & 1) == 1;
     }
-
-    public static long edges(int square)
-    {
+ 
+    /**
+     * Get the edges of the given square.
+     */
+    public static long edges(int square) {
         return (((RANK_1 | RANK_8) & ~RANKS[Board.getRank(square)]) 
              | ((FILE_A | FILE_H) & ~FILES[Board.getFile(square)]));
     }
@@ -311,8 +313,7 @@ public class Bitboard {
      * 
      * @see https://en.wikipedia.org/wiki/Bit_numbering#Most_significant_bit
      */
-    public static int msb(long bb)
-    {
+    public static int msb(long bb) {
         return Long.SIZE - Long.numberOfLeadingZeros(bb);
     }
 
@@ -322,16 +323,14 @@ public class Bitboard {
      * 
      * @see https://en.wikipedia.org/wiki/Bit_numbering#Least_significant_bit
      */
-    public static int lsb(long bb)
-    {
+    public static int lsb(long bb) {
         return Long.numberOfTrailingZeros(bb);
     }
 
     /**
      * Get list of squares from Bitboard.
      */
-    public static List<Long> toList(long bb)
-    {
+    public static List<Long> toList(long bb) {
         List<Long> squares = new ArrayList<Long>();
 
         for(int sq=Board.A1;sq<=Board.H8;sq++) {
@@ -344,8 +343,7 @@ public class Bitboard {
     /**
      * Get reversed list of squares from Bitboard.
      */
-    public static List<Long> toReversedList(long bb)
-    {
+    public static List<Long> toReversedList(long bb) {
         List<Long> squares = new ArrayList<Long>();
 
         for(int sq=Board.H8;sq>=Board.A1;sq--) {

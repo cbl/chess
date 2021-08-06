@@ -121,13 +121,14 @@ public class Board {
         public static final int SQUARE = ~(~1 << 5);
     }
 
+    /**
+     * Generate bitboard squares.
+     */
     private static final long[] generateBBSquares()
     {
         long[] bbSquares = new long[SQUARE_COUNT];
 
-        for(int sq = A1;sq<=H8;sq++) {
-            bbSquares[sq] = 0x1L << sq;
-        }
+        for(int sq = A1;sq<=H8;sq++) bbSquares[sq] = 0x1L << sq;
 
         return bbSquares;
     }
@@ -218,8 +219,7 @@ public class Board {
     /**
      * Get list of squares from Bitboard.
      */
-    public static List<Integer> toList(long bb)
-    {
+    public static List<Integer> toList(long bb) {
         List<Integer> squares = new ArrayList<Integer>();
 
         for(int sq=Board.A1;sq<=Board.H8;sq++) {
@@ -232,8 +232,7 @@ public class Board {
     /**
      * Get reversed list of squares from Bitboard.
      */
-    public static List<Integer> toReversedList(long bb)
-    {
+    public static List<Integer> toReversedList(long bb) {
         List<Integer> squares = new ArrayList<Integer>();
 
         for(int sq=Board.H8;sq>=Board.A1;sq--) {
@@ -246,8 +245,7 @@ public class Board {
     /**
      * Get the string reprensentation of a square.
      */
-    public static String squareToString(int square)
-    {
+    public static String squareToString(int square) {
         return FILE_NAMES[getFile(square)] + RANK_NAMES[getRank(square)];
     }
 }

@@ -40,8 +40,7 @@ public class Move {
     /**
      * Create new Move instance.
      */
-    public Move(int from, int to)
-    {
+    public Move(int from, int to) {
         this.from = from;
         this.to = to;
         this.promotion = 0;
@@ -50,8 +49,7 @@ public class Move {
     /**
      * Create new Move instance.
      */
-    public Move(int from, int to, int promotion)
-    {
+    public Move(int from, int to, int promotion) {
         this.from = from;
         this.to = to;
         this.promotion = promotion;
@@ -77,24 +75,21 @@ public class Move {
     /**
      * Indicates if the move is a promotion.
      */
-    public boolean isPromotion()
-    {
+    public boolean isPromotion() {
         return promotion != 0;
     }
 
     /**
      * Get the moves distance.
      */
-    public int distance()
-    {
+    public int distance() {
         return Board.distance(from, to);
     }
 
     /**
      * Get the string representation of the move.
      */
-    public String toString()
-    {
+    public String toString() {
         String str = Board.squareToString(from) + Board.squareToString(to);
 
         if(isPromotion()) {

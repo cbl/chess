@@ -3,25 +3,20 @@ package com.github.cbl.chess.chess;
 import com.github.cbl.chess.util.StateMachine;
 import com.github.cbl.chess.notations.AlgebraicNotation;
 
-public class GameOfChess
-{
-    public enum State
-    {
+public class GameOfChess {
+    public enum State {
         Pending, Waiting, Thinking, Over
     }
 
-    public enum Transition
-    {
+    public enum Transition {
         Start, Move, Resign, Cancel, Over
     }
 
-    public enum Termination
-    {
+    public enum Termination {
         CHECKMATE, STALEMATE, INSUFFICIENT_MATERIAL, THREEFOLD_REPETITION, RESIGNED
     }
 
-    public class Outcome
-    {
+    public class Outcome {
         public Termination termination;
         public int winner = Piece.Color.NONE;
         Outcome(Termination termination, int winner) {
@@ -74,8 +69,7 @@ public class GameOfChess
         state.transition(Transition.Resign);
     }
 
-    public Outcome outcome()
-    {
+    public Outcome outcome() {
         if(resigned) {
             return new Outcome(Termination.RESIGNED, position.themColor());
         }

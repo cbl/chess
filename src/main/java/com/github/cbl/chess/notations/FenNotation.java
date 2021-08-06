@@ -24,7 +24,7 @@ public class FenNotation implements Notation {
         return pieceToChar.indexOf(ch);
     }
     
-     /**
+    /**
      * Generate a board from the given notation.
      */
     public Position parse(String fen)
