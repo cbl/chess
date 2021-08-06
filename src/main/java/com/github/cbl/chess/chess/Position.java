@@ -492,7 +492,7 @@ public class Position implements Cloneable {
         MoveList moveList = new MoveList();
         long bbKing = this.king(this.sideToMove) & fromMask;
 
-        if(bbKing == 0) return moveList;
+        if(bbKing == Bitboard.EMPTY) return moveList;
 
         int kingSquare = Board.fromBB(bbKing);
         int kingRank = Board.getRank(kingSquare);

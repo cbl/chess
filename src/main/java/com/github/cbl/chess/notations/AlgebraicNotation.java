@@ -111,6 +111,7 @@ public class AlgebraicNotation implements Notation {
      */
     public Position parse(String notation)
     {
+        // Todo:
         return new Position();
     }
 
@@ -119,6 +120,7 @@ public class AlgebraicNotation implements Notation {
      */
     public String compose(Position position)
     {
+        // Todo:
         return "";
     }
 }
