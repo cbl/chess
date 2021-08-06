@@ -17,9 +17,12 @@ public class FenNotation implements Notation {
      * The FEN for the standard chess starting position.
      */
     public static final String startingFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0";
-
+    
     public static final String pieceToChar = " PNBRQK  pnbrqk";
 
+    /**
+     * Get the piece from a givne char.
+     */
     public static int charToPiece(char ch) {
         return pieceToChar.indexOf(ch);
     }
