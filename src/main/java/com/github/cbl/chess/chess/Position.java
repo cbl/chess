@@ -550,9 +550,9 @@ public class Position implements Cloneable {
         long blockersRight = BBIndex.BETWEEN[kingSquare][rightRookSquare] & ourPieces;
         long blockersLeft = BBIndex.BETWEEN[kingSquare][leftRookSquare] & ourPieces;
 
-        if((castleLeft & castlingRights) != 0 && castleLeft != 0 && blockersRight == 0)
+        if((castleLeft & castlingRights) != Bitboard.EMPTY && castleLeft != Bitboard.EMPTY && blockersLeft == Bitboard.EMPTY)
             moveList.add(new Move(kingSquare, Board.fromBB(castleLeft)));
-        if((castleRight & castlingRights) != 0 && castleRight != 0  && blockersLeft == 0)
+        if((castleRight & castlingRights) != Bitboard.EMPTY && castleRight != Bitboard.EMPTY  && blockersRight == Bitboard.EMPTY)
             moveList.add(new Move(kingSquare, Board.fromBB(castleRight)));
 
         return moveList;
@@ -638,8 +638,6 @@ public class Position implements Cloneable {
             for(int to : Board.toReversedList(BBIndex.ATTACKS[Piece.KING][kingSquare] & ~this.occupied(this.sideToMove))) {
                 evasions.add(new Move(kingSquare, to));
             }
-
-            // TODO: capture the checking pawn with an en passant move.
         }
 
         // Moves to block check are generated when only one opponent piece is 
@@ -738,22 +736,22 @@ public class Position implements Cloneable {
         if(move.isPromotion()) pieceType = move.promotion;
 
         // Place the piece at the given square.
-        this.setPieceAt(move.to, pieceType, this.sideToMove);
+        setPieceAt(move.to, pieceType, this.sideToMove);
 
         // Do castling.
         if(pieceType == Piece.KING && move.distance() == 2 && toFile == Board.FILE_C) {
             int rookSquare =  Board.square(fromRank, Board.FILE_A);
-            this.removePieceAt(rookSquare);
-            this.setPieceAt(rookSquare, Piece.ROOK, this.sideToMove);
+            removePieceAt(rookSquare);
+            setPieceAt(move.to + Move.RIGHT, Piece.ROOK, sideToMove);
         } else if(pieceType == Piece.KING && move.distance() == 2 && toFile == Board.FILE_G) {
             int rookSquare =  Board.square(fromRank, Board.FILE_H);
-            this.removePieceAt(rookSquare);
-            this.setPieceAt(rookSquare, Piece.ROOK, this.sideToMove);
+            removePieceAt(rookSquare);
+            setPieceAt(move.to + Move.LEFT, Piece.ROOK, sideToMove);
         }
 
         // Clear castling rights after king move.
         if(pieceType == Piece.KING) {
-            this.castlingRights &= this.sideToMove == Piece.Color.WHITE ? Bitboard.BLACK_SIDE : Bitboard.WHITE_SIDE;
+            castlingRights &= sideToMove == Piece.Color.WHITE ? Bitboard.BLACK_SIDE : Bitboard.WHITE_SIDE;
         }
 
         // Clear castling rights after rook moved from original square.
@@ -769,22 +767,22 @@ public class Position implements Cloneable {
 
         // Remember possible En Passant for next move.
         if(pieceType == Piece.PAWN && Math.abs(Board.getRank(move.from)-Board.getRank(move.to)) == 2) {
-            this.epSquare = Board.BB_SQUARES[move.from + Move.pawn(sideToMove)];
+            epSquare = Board.BB_SQUARES[move.from + Move.pawn(sideToMove)];
         }
 
         // Push move to the stack and increase index.
-        this.moves[this.moveIndex] = move;
-        this.moveIndex++;
+        moves[moveIndex] = move;
+        moveIndex++;
 
         try {
             this.stack.add(this.clone());
         } catch(CloneNotSupportedException e) {}
 
         // Cache check info.
-        this.setCheckInfo();
+        setCheckInfo();
 
         // Swap side to move.
-        this.sideToMove = Piece.Color.opposite(this.sideToMove);
+        sideToMove = Piece.Color.opposite(sideToMove);
     }
 
     /**
@@ -812,32 +810,32 @@ public class Position implements Cloneable {
      * Set a piece at the given square.
      */
     public void setPieceAt(int square, int pieceType, int color) {
-        this.removePieceAt(square);
+        removePieceAt(square);
 
         long mask = Board.BB_SQUARES[square];
 
-        this.piecesByType[pieceType] |= mask;
-        this.piecesByType[Piece.ANY] |= mask;
-        this.piecesByColor[Piece.Color.ANY] |= mask;
-        this.piecesByColor[color] |= mask;
-        this.pieces[square] = Piece.make(pieceType, color);
+        piecesByType[pieceType] |= mask;
+        piecesByType[Piece.ANY] |= mask;
+        piecesByColor[Piece.Color.ANY] |= mask;
+        piecesByColor[color] |= mask;
+        pieces[square] = Piece.make(pieceType, color);
     }
 
     /**
      * Remove a piece from the given square.
      */
     public int removePieceAt(int square) {
-        int pieceType = this.pieceTypeAt(square);
+        int pieceType = pieceTypeAt(square);
         long mask = Board.BB_SQUARES[square];
 
         if(pieceType == 0) return pieceType;
 
-        this.piecesByType[pieceType] &= ~mask;
-        this.piecesByType[Piece.ANY] &= ~mask;
-        this.piecesByColor[Piece.Color.ANY] &= ~mask;
-        this.piecesByColor[Piece.Color.WHITE] &= ~mask;
-        this.piecesByColor[Piece.Color.BLACK] &= ~mask;
-        this.pieces[square] = 0;
+        piecesByType[pieceType] &= ~mask;
+        piecesByType[Piece.ANY] &= ~mask;
+        piecesByColor[Piece.Color.ANY] &= ~mask;
+        piecesByColor[Piece.Color.WHITE] &= ~mask;
+        piecesByColor[Piece.Color.BLACK] &= ~mask;
+        pieces[square] = 0;
 
         return pieceType;
     }
