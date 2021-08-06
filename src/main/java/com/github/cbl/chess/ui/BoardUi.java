@@ -93,7 +93,7 @@ public class BoardUi extends JFrame {
                 handleTransitionedTo((GameOfChess.State) v);
             }
 
-            updateGameLog();
+            updateGameState();
         }
 
         void handleTransition(GameOfChess.Transition transition) {
@@ -190,13 +190,16 @@ public class BoardUi extends JFrame {
         game.state().addObserver(new GameObserver(this));
         game.start();
 
-        frame.remove(input);
+        clearLog();
+        frame.add(input);
+        input.setEditable(false);
         frame.remove(newGameButton);
         frame.remove(loadGameButton);
         frame.remove(loadFenButton);
         frame.add(resignButton);
         frame.revalidate(); 
         frame.repaint();
+        log("New game has started! ("+Piece.Color.toString(pos.sideToMove)+" to move)");
     }
 
     protected void initResignButton() {
@@ -215,11 +218,16 @@ public class BoardUi extends JFrame {
 		loadGameButton.setFocusable(false);
 		
         loadGameButton.addActionListener(e -> {
+            input.setText("");
+            input.setEditable(true);
             frame.add(input);
             frame.add(loadFenButton);
             frame.remove(loadGameButton);
             frame.revalidate(); 
             frame.repaint();
+
+            clearLog();
+            log("Paste the FEN representation of the game you want to import into the input field above.");
         });
     }
 
@@ -247,6 +255,8 @@ public class BoardUi extends JFrame {
         gameLog = new JTextArea();
 		gameLog.setBounds(boardWidth(), buttonY(4), sideBarWidth, 4*sqSize);
         gameLog.setEditable(false);
+        gameLog.setWrapStyleWord(true);
+        gameLog.setLineWrap(true);
 		Border border = BorderFactory.createLineBorder(Color.BLACK, 4);
 		gameLog.setBorder(border);
     }
@@ -254,6 +264,8 @@ public class BoardUi extends JFrame {
     protected void initInput() {
         input = new JTextArea();
 		input.setBounds(boardWidth(), buttonY(3), sideBarWidth, sqSize);
+        input.setWrapStyleWord(true);
+        input.setLineWrap(true);
 		Border border2 = BorderFactory.createLineBorder(Color.BLACK, 4);
 		input.setBorder(border2);
     }
@@ -342,12 +354,6 @@ public class BoardUi extends JFrame {
         }
     }
 
-	protected void onClickSave(JFrame frame) {
-		frame.add(loadGameButton);
-		frame.revalidate(); 
-		frame.repaint();
-	}
-
     protected void clearLog() {
         gameLog.setText("");
     }
@@ -357,37 +363,6 @@ public class BoardUi extends JFrame {
             gameLog.getText()+"\n"+log    
         );
     }
-
-    protected void onClickSaveDuringGame(JFrame frame) {
-		frame.revalidate(); 
-		frame.repaint();
-	}
-
-	protected void parseFen() {
-		this.fenString = input.getText();
-		Position position = fen.parse(fenString);
-		this.game = new GameOfChess(position);
-        this.game.state().addObserver(new GameObserver(this));
-        this.game.start();
-	}
-
-	protected void parseAlg() {
-		this.algString = gameLog.getText();
-		Position position = alg.parse(algString);
-		System.out.println(position);
-		game = new GameOfChess(position);
-        game.state().addObserver(new GameObserver(this));
-        game.start();
-	}
-
-	protected void onClickSaveFen() {
-		String fenString = fen.compose(game.position);
-        log(fenString);
-	}
-
-	protected void createAlg() {
-        // TODO
-	}
 
     /**
      * Select the given square.
@@ -463,6 +438,18 @@ public class BoardUi extends JFrame {
         return Board.isWhite(square) ? lightSquareColor : darkSquareColor;
     }
 
+    protected void updateGameState() {
+        updateGameLog();
+
+        if(game.outcome().termination == null) return;
+
+        frame.remove(resignButton);
+        frame.add(newGameButton);
+        frame.add(loadGameButton);
+        frame.revalidate(); 
+		frame.repaint();
+    }
+
     /**
      * Update the gamelog.
      */
@@ -490,5 +477,7 @@ public class BoardUi extends JFrame {
         }
 
         gameLog.setText(str);
+
+        input.setText(fen.compose(game.position));
     }
 }

@@ -1,5 +1,6 @@
 package com.github.cbl.chess.notations;
 
+import com.github.cbl.chess.chess.Bitboard;
 import com.github.cbl.chess.chess.Board;
 import com.github.cbl.chess.chess.Move;
 import com.github.cbl.chess.chess.Piece;
@@ -8,11 +9,12 @@ import com.github.cbl.chess.chess.Position;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.StringJoiner;
 
 public class FenNotation implements Notation {
 
     /**
-     * The standard occupation.
+     * The FEN for the standard chess starting position.
      */
     public static final String startingFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0";
 
@@ -89,10 +91,65 @@ public class FenNotation implements Notation {
     }
 
     /**
-     * Generate the notation for a given position.
+     * Compose the FEN representaiton of the given position.
      */
-    public String compose(Position position)
+    public String compose(Position pos)
     {
-        return "lol";
+        StringJoiner sj = new StringJoiner(" ");
+
+        sj.add(composeEPD(pos));
+        sj.add(Integer.toString(pos.halfmoveCount));
+        sj.add(Integer.toString(pos.moveNumber));
+
+        return sj.toString();
+    }
+
+    /**
+     * Compose the EPD representation of the given position.
+     */
+    protected String composeEPD(Position pos) {
+        StringJoiner sj = new StringJoiner(" ");
+
+        sj.add(composeBoardFen(pos));
+        sj.add(pos.sideToMove == Piece.Color.WHITE ? "w" : "b");
+        sj.add(pos.epSquare == Bitboard.EMPTY ? "-" : Board.squareToString(Board.fromBB(pos.epSquare)));
+
+        return sj.toString();
+    }
+
+    /**
+     * Compose the board FEN.
+     */
+    protected String composeBoardFen(Position pos) {
+        StringJoiner sj = new StringJoiner("");
+        int empty = 0;
+
+        for(int sq = Board.A1;sq<=Board.H8;sq++) {
+            int mirror = sq ^ 0x38; // Mirrors the square vertically.
+            int piece = pos.pieceAt(mirror);
+
+            if(piece == Piece.NONE) {
+                empty++;
+            } else {
+                if(empty > 0) {
+                    sj.add(Integer.toString(empty));
+                    empty = 0;
+                }
+                sj.add(Character.toString(pieceToChar.charAt(piece)));
+            }
+
+            if((Board.BB_SQUARES[mirror] & Bitboard.FILE_H) != Bitboard.EMPTY) {
+                if(empty > 0) {
+                    sj.add(Integer.toString(empty));
+                    empty = 0;
+                }
+
+                if(mirror != Board.H1) {
+                    sj.add("/");
+                }
+            }
+        }
+    
+        return sj.toString();
     }
 }
