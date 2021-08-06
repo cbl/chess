@@ -53,7 +53,7 @@ Im vorigen Zug wurde der weiße Bauer von d2 nach d4 bewegt, somit könnte der s
 
 8/6bb/8/8/R1pP2k1/4P3/P7/K7 b - d3 0 0
 
-Der folgende FEN zeigt, dass der Zug möglich ist, wenn es keinen Turm auf a4 gibt:
+Der folgende FEN zeigt, dass der Zug möglich ist, wenn kein Turm auf a4 steht:
 
 8/6bb/8/8/2pP2k1/4P3/P7/K7 b - d3 0 0
 
