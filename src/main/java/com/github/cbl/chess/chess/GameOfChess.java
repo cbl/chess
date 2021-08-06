@@ -19,6 +19,10 @@ public class GameOfChess {
     public class Outcome {
         public Termination termination;
         public int winner = Piece.Color.NONE;
+
+        /**
+         * Create a new Outcome instance.
+         */
         Outcome(Termination termination, int winner) {
             this.termination = termination;
             this.winner = winner;
@@ -30,6 +34,9 @@ public class GameOfChess {
     public MoveList moves;
     private boolean resigned = false;
 
+    /**
+     * Create a new GameOfChess instance.
+     */
     public GameOfChess(Position pos) {
         position = pos;
 
@@ -41,19 +48,35 @@ public class GameOfChess {
         state.allow(Transition.Over, State.Thinking, State.Over);
     }
 
+    /**
+     * Start the game.
+     */
     public boolean start() {
         return state.transition(Transition.Start);
     }
 
+    /**
+     * Gets the instance of the StateMachine.
+     */
     public StateMachine state() {
         return state;
     }
 
+    /**
+     * Determines if the current game state matches the given state.
+     */
     public boolean isState(State state) {
         return ((State) this.state.current()) == state;
     }
 
+    /**
+     * Push a move to the current position. It is not checked whether the move 
+     * is legal or not. So it is the responsibility of the dependor to pass 
+     * only legal moves.
+     */
     public boolean push(Move move) {
+        if(isState(State.Pending) || isState(State.Over)) return false;
+
         position.push(move);
         state.transition(Transition.Move);
 
@@ -64,11 +87,17 @@ public class GameOfChess {
         return true;
     }
 
+    /**
+     * Resign the game.
+     */
     public void resign() {
         resigned = true;
         state.transition(Transition.Resign);
     }
 
+    /**
+     * Gets and instance of the outcome of the game.
+     */
     public Outcome outcome() {
         if(resigned) {
             return new Outcome(Termination.RESIGNED, position.themColor());

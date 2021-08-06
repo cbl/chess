@@ -22,8 +22,6 @@ public class Piece {
     public static final int KING = 6;
     public static final int ANY = 0;
 
-    public static int[] VALUES = { 0, 1, 3, 3, 5, 7, 0 };
-
     public static class Block {
         public static final int TYPE = 7;
         public static final int COLOR = 0b1 << 3;
@@ -38,10 +36,16 @@ public class Piece {
         public static final int BLACK = 1;
         public static final int ANY = 2;
 
+        /**
+         * Gets the opposite color.
+         */
         public static int opposite(int color) {
             return color == WHITE ? BLACK : WHITE;
         }
 
+        /**
+         * Get the string representation of the given color.
+         */
         public static String toString(int color) {
             if(color == WHITE) {
                 return "white";
@@ -55,26 +59,37 @@ public class Piece {
         }
     }
 
+    /**
+     * Make a piece from the given type and color.
+     */
     public static int make(int type, int color) {
         return color << Block.TYPE_SIZE | type;
     }
 
-    public static int getValue(int piece) {
-        return VALUES[getType(piece)];
-    }
-
+    /**
+     * Gets the color of the given piece.
+     */
     public static int getColor(int piece) {
         return (piece & Block.COLOR) >> Block.TYPE_SIZE;
     }
 
+    /**
+     * Determines whether the given piece matches the given color.
+     */
     public static boolean isColor(int piece, int color) {
         return (piece & Block.COLOR) >> Block.TYPE_SIZE == color;
     }
 
+    /**
+     * Gets the type of the given pieces.
+     */
     public static int getType(int piece) {
         return piece & Block.TYPE;
     }
 
+    /**
+     * Determines whether the given piece matches the given type.
+     */
     public static boolean isType(int piece, int type) {
         return (piece & Block.TYPE) == type;
     }
