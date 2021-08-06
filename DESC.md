@@ -4,7 +4,11 @@ Das Programm stellt eine virtuelles Schachbrett dar. Im folgenden wird der Funkt
 
 ### Funktionsumfang
 
-Es können Spiele gespielt werden. Beim Ziehen der Figuren werden nach dem Klicken auf eine Figur die legalen Zügen eingefärbt. Es können beliebige Boardpositionen in Form des FEN's geladen werden. Außerdem ist es Möglich das bestehende Spiel in Form eines FEN's zu exportieren. Nur legale Züge sind möglich.
+- Es können Spiele Mensch gegen Mensch gespielt werden. 
+- Beim Ziehen der Figuren werden nach dem Klicken auf eine Figur die legalen Zügen eingefärbt. 
+- Es können beliebige Boardpositionen in Form des FEN's geladen werden. 
+- Es ist es Möglich das bestehende Spiel in Form eines FEN's zu exportieren. 
+- Nur legale Züge sind möglich.
 
 ### Spiel Anleitung
 
