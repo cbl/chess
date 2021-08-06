@@ -188,14 +188,59 @@ public class Position implements Cloneable {
      * check.
      */
     protected boolean isSafe(int kingSquare, Move move) {
-        if(move.from == kingSquare) {
+
+        // King move.
+        if(move.from == kingSquare)
             return !this.isAttackedBy(this.themColor(), move.to);
+
+        if(isEnPassant(move)) {
+            return !isPinned(sideToMove, Board.BB_SQUARES[move.from]) 
+                && !epSekwered(Board.fromBB(king(sideToMove)), move.from);
+        }
+        
+        return !isPinned(sideToMove, Board.BB_SQUARES[move.from])
+            || (BBIndex.STRECHED[move.from][move.to] & Board.BB_SQUARES[kingSquare]) != 0;
+    }
+
+    /**
+     * Determine if the own king would be in check if the pawn captures via en 
+     * passant and both pieces disappear from the board.
+     * 
+     * @see https://www.chessprogramming.org/En_passant (Legality Test)
+     * Legality Test: 8/6bb/8/8/R1pP2k1/4P3/P7/K7 b - d3 0 0
+     */
+    protected boolean epSekwered(int kingSquare, int capturer) {
+        if(epSquare == Bitboard.EMPTY) return false;
+
+        int direction = sideToMove == Piece.Color.WHITE ? Move.UP : Move.DOWN;
+        int d = Board.fromBB(epSquare) - direction;
+        long occupancy = occupied() & ~Board.BB_SQUARES[d] & ~Board.BB_SQUARES[capturer] | epSquare;
+        long potentialAttackers = occupied(this.themColor()) & (rooks() | queens());
+
+        if((BBIndex.RANK_ATTACKS[kingSquare].get(BBIndex.RANK_MASKS[kingSquare] & occupancy) & potentialAttackers) != Bitboard.EMPTY) {
+            return true;
         }
 
-        // TODO: EP Skewered
-        
-        return (this.pinned[this.sideToMove] & Board.BB_SQUARES[move.from]) == 0 
-            || (BBIndex.STRECHED[move.from][move.to] & Board.BB_SQUARES[kingSquare]) != 0;
+        return false;
+    }
+
+    /**
+     * Determines wheter a piece at a given square is pinned.
+     */
+    public boolean isPinned(int color, long mask) {
+        return (pinned[color] & mask) != Bitboard.EMPTY;
+    }
+
+    /**
+     * Determines whether a move is an en passant capture.
+     */
+    protected boolean isEnPassant(Move move) {
+        int direction = Math.abs(move.to - move.from);
+
+        return epSquare == Board.BB_SQUARES[move.to] 
+            && (pawns() & Board.BB_SQUARES[move.from]) != Bitboard.EMPTY
+            && (occupied() & Board.BB_SQUARES[move.to]) == Bitboard.EMPTY
+            && (direction == 7 || direction == 9);
     }
 
     /**
@@ -676,8 +721,8 @@ public class Position implements Cloneable {
         int fromRank = Board.getRank(move.from);
 
         // Do en passant
-        if(epSquare != Bitboard.EMPTY && Board.BB_SQUARES[move.to] == epSquare) {
-            removePieceAt(move.from + (Board.getRank(move.to) - Board.getRank(move.from)));
+        if(isEnPassant(move)) {
+            removePieceAt(move.to - (sideToMove == Piece.Color.WHITE ? Move.UP : Move.DOWN));
         }
         
         // Reset En Passant square

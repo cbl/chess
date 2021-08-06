@@ -60,7 +60,9 @@ public class FenNotation implements Notation {
         // Castling rights
         for(i+=2;i<fen.length();i++) {
             ch = fen.charAt(i);
-            if(ch == '-' || ch == ' ') break;
+
+            if(ch == ' ') break;
+            if(ch == '-') continue; 
 
             piece = charToPiece(ch);
             int color = Piece.getColor(piece);
@@ -85,8 +87,10 @@ public class FenNotation implements Notation {
         else
             i--;
 
-        // Number of halfmoves and moves
         substr = fen.substring(++i);
+        if(substr == "") return p;
+
+        // Number of halfmoves and moves
         p.halfmoveCount = Integer.parseInt(substr.substring(0, substr.indexOf(' ')));
         p.moveNumber = Integer.parseInt(fen.substring((++i)+substr.indexOf(' ')));
 
