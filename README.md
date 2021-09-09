@@ -1,5 +1,5 @@
 # chess
 
-A Chess game written in Java.
+A vitual chess board written in Java.
 
 ![](preview.png)
